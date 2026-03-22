@@ -1,0 +1,11 @@
+{
+  "impresora": {
+    "ancho_ticket": 80,
+    "modelo": "Xprinter EX-E200M",
+    "nombre_impresora": "XP-80C"
+  },
+  "tickets": {
+    "incluir_fecha_hora": true,
+    "lineas_corte": 3
+  }
+}

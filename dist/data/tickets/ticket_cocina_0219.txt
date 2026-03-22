@@ -1,0 +1,24 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0219                     09/03/2026 14:24
+================================================
+Cliente: Eric
+Servicio en mesa
+PEDIDO:
+1 PANCHO PRUEBA                           $1,500
+  Sin Papas pay.                           -$250
+1 Milanesa Completa                       $9,500
+1 PANCHO PRUEBA                           $1,500
+1 Cocacola 2.25Lt.                        $3,500
+1 Papas Fritas Bandejita                  $3,800
+------------------------------------------------
+TOTAL A PAGAR:                           $19,550
+------------------------------------------------
+Metodo de pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================

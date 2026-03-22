@@ -1,0 +1,748 @@
+{
+  "categorias": [
+    {
+      "nombre": "Hamburguesas",
+      "productos": [
+        {
+          "id": 7,
+          "nombre": "Hamburguesa Completa S/Papas",
+          "precio": 8000.0,
+          "descripcion": "Tomáte, lechuga, paleta, queso y huevo.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_7.png"
+        },
+        {
+          "id": 1,
+          "nombre": "Hamburguesa Completa con papas",
+          "precio": 10000.0,
+          "descripcion": "Tomáte, lechuga, paleta, queso, huevo y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Cheddar Extra",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_1.png"
+        },
+        {
+          "id": 8,
+          "nombre": "Hamburguesa Simple S/Papas",
+          "precio": 6000.0,
+          "descripcion": "Tomáte y lechuga.",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_8.png"
+        },
+        {
+          "id": 4,
+          "nombre": "Hamburguesa Cheddar Simple",
+          "precio": 8000.0,
+          "descripcion": "Hamburguesa con Cheddar.",
+          "imagen": "productos/producto_4.png",
+          "ingredientes": [
+            {
+              "nombre": "Fetas de Cheddar H.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "nombre": "Hamburguesa Doble Cheddar",
+          "precio": 10000.0,
+          "descripcion": "Hamburguesa con Cheddar.",
+          "ingredientes": [
+            {
+              "nombre": "Fetas de Cheddar H.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_5.png"
+        },
+        {
+          "id": 6,
+          "nombre": "Hamburguesa Triple Cheddar",
+          "precio": 11800.0,
+          "descripcion": "Hamburguesa triple con Cheddar.",
+          "imagen": "productos/producto_6.png",
+          "ingredientes": [
+            {
+              "nombre": "Fetas de Cheddar H.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "nombre": "Hamburguesa J y Q con papas",
+          "precio": 9800.0,
+          "descripcion": "Jamón, queso y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_2.jpg"
+        },
+        {
+          "id": 41,
+          "nombre": "Combo de hamb simples con papas y coca 1L",
+          "precio": 18500.0,
+          "descripcion": "dos hamburguesas simples con papas MAS UNA COCA DE 1L"
+        },
+        {
+          "id": 42,
+          "nombre": "carne extra de hamburguesa",
+          "precio": 3000.0,
+          "descripcion": ""
+        },
+        {
+          "id": 9,
+          "nombre": "Hamburguesa J y Q S/Papas",
+          "precio": 7500.0,
+          "descripcion": "Jamón y Queso.",
+          "imagen": "productos/producto_9.png",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "nombre": "Hamburguesa Simple con papas",
+          "precio": 8500.0,
+          "descripcion": "Tomáte, lechuga y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Ham.",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_3.png"
+        }
+      ]
+    },
+    {
+      "nombre": "Lomitos",
+      "productos": [
+        {
+          "id": 10,
+          "nombre": "Lomito Completo con papas",
+          "precio": 10500.0,
+          "descripcion": "Tomáte, lechuga, paleta, queso, huevo y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_10.png"
+        },
+        {
+          "id": 13,
+          "nombre": "Lomito Completo S/Papas",
+          "precio": 8800.0,
+          "descripcion": "Tomáte, lechuga, paleta, queso y huevo.",
+          "imagen": "productos/producto_13.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "nombre": "Lomito Simple S/Papas",
+          "precio": 7000.0,
+          "descripcion": "Tomáte y lechuga.",
+          "imagen": "productos/producto_14.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "nombre": "Lomito Simple con papas",
+          "precio": 9000.0,
+          "descripcion": "Tomáte, lechuga y fritas.",
+          "imagen": "productos/producto_11.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "nombre": "Lomito J y Q S/Papas",
+          "precio": 8500.0,
+          "descripcion": "Jamón y Queso.",
+          "imagen": "productos/producto_15.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "nombre": "Lomito J y Q con papas",
+          "precio": 10300.0,
+          "descripcion": "Jamón, Queso y fritas.",
+          "imagen": "productos/producto_12.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne Lomito",
+              "cantidad_base": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nombre": "Milanesas",
+      "productos": [
+        {
+          "id": 21,
+          "nombre": "Milanesa Completa con papas",
+          "precio": 10500.0,
+          "descripcion": "Tomáte, lechuga, jamón, queso, huevo y fritas",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_21.webp"
+        },
+        {
+          "id": 22,
+          "nombre": "Milanesa Simple con papas",
+          "precio": 9000.0,
+          "descripcion": "Tomáte, lechuga y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_22.webp"
+        },
+        {
+          "id": 25,
+          "nombre": "Milanesa Simple S/Papas",
+          "precio": 7000.0,
+          "descripcion": "Tomáte y lechuga.",
+          "ingredientes": [
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo para Hamb y Lomito SIMPLE",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_25.webp"
+        },
+        {
+          "id": 24,
+          "nombre": "Milanesa Completo S/Papas",
+          "precio": 8800.0,
+          "descripcion": "Tomáte, lechuga, jamón, queso y huevo.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Huevo",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Tomate",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Lechuga",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_24.jpg"
+        },
+        {
+          "id": 26,
+          "nombre": "Milanesa J y Q S/Papas",
+          "precio": 8500.0,
+          "descripcion": "Jamón y Queso.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            }
+          ],
+          "imagen": "productos/producto_26.webp"
+        },
+        {
+          "id": 23,
+          "nombre": "MIlanesa J y Q con papas",
+          "precio": 10300.0,
+          "descripcion": "Jamón, queso y fritas.",
+          "ingredientes": [
+            {
+              "nombre": "Jamon",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Queso",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Milanesa",
+              "cantidad_base": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nombre": "Fritas",
+      "productos": [
+        {
+          "id": 31,
+          "nombre": "Papas Con Cheddar",
+          "precio": 7000.0,
+          "descripcion": "Porción de papas fritas con Cheddar.",
+          "imagen": "productos/producto_31.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Cheddar Salsa",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 30,
+          "nombre": "Papas Fritas Bandejita",
+          "precio": 4000.0,
+          "descripcion": "Porción simple de papas fritas.",
+          "imagen": "productos/producto_30.jpg",
+          "ingredientes": [
+            {
+              "nombre": "Cheddar Salsa",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 40,
+          "nombre": "Papas pay",
+          "precio": 1.0,
+          "descripcion": "Papas pay",
+          "imagen": "productos/producto_40.webp"
+        },
+        {
+          "id": 37,
+          "nombre": "super pancho",
+          "precio": 3000.0,
+          "descripcion": "Super pancho",
+          "ingredientes": [
+            {
+              "nombre": "mayonesa",
+              "cantidad_base": 0
+            },
+            {
+              "nombre": "ketchup",
+              "cantidad_base": 0
+            },
+            {
+              "nombre": "papas pai",
+              "cantidad_base": 0
+            },
+            {
+              "nombre": "savora",
+              "cantidad_base": 0
+            }
+          ],
+          "imagen": "productos/producto_37.webp"
+        }
+      ]
+    },
+    {
+      "nombre": "Empanadas",
+      "productos": [
+        {
+          "id": 19,
+          "nombre": "Empanadas (x6)",
+          "precio": 9000.0,
+          "descripcion": "Seis empanadas salteñas.",
+          "imagen": "productos/producto_19.webp"
+        },
+        {
+          "id": 18,
+          "nombre": "Empanadas (x12)",
+          "precio": 17500.0,
+          "descripcion": "Doce empanadas salteñas.",
+          "imagen": "productos/producto_18.png",
+          "ingredientes": [
+            {
+              "nombre": "(Una/s Empanadas/s del precio x12)",
+              "cantidad_base": 12
+            }
+          ]
+        },
+        {
+          "id": 35,
+          "nombre": "UNA DOCENA Y MEDIA EMPANADAS (x18)",
+          "precio": 26200.0,
+          "descripcion": "Una docena y media de empanadas."
+        },
+        {
+          "id": 20,
+          "nombre": "Empanada (x1) de carne",
+          "precio": 2000.0,
+          "descripcion": "Una empanada salteña.",
+          "imagen": "productos/producto_20.webp",
+          "ingredientes": [
+            {
+              "nombre": "J Y Q",
+              "cantidad_base": 1
+            },
+            {
+              "nombre": "Carne",
+              "cantidad_base": 1
+            }
+          ]
+        },
+        {
+          "id": 38,
+          "nombre": "empanada (x1) de J y Q",
+          "precio": 2000.0,
+          "descripcion": "EMPANADA DE J Y Q",
+          "imagen": "productos/producto_38.webp"
+        },
+        {
+          "id": 36,
+          "nombre": "una empanda (al precio de 12) De carne",
+          "precio": 1500.0,
+          "descripcion": ""
+        },
+        {
+          "id": 39,
+          "nombre": "una empanada (al precio de 12) de j y q",
+          "precio": 1500.0,
+          "descripcion": ""
+        }
+      ]
+    },
+    {
+      "nombre": "Bebidas",
+      "productos": [
+        {
+          "id": 32,
+          "nombre": "Fresh 1.5L",
+          "precio": 2800.0,
+          "descripcion": "Agua saborizada de 1.5L",
+          "imagen": "productos/producto_32.png"
+        },
+        {
+          "id": 33,
+          "nombre": "Fanta 500ml",
+          "precio": 2500.0,
+          "descripcion": "Gaseosa Fanta de 500ml.",
+          "imagen": "productos/producto_33.png"
+        },
+        {
+          "id": 34,
+          "nombre": "Sprite 500ml",
+          "precio": 2500.0,
+          "descripcion": "Sprite de 500ml",
+          "imagen": "productos/producto_34.png"
+        },
+        {
+          "id": 27,
+          "nombre": "Gaseosa Cocacola 500ml",
+          "precio": 2500.0,
+          "descripcion": "Coca-cola 500ml",
+          "imagen": "productos/producto_27.jpg"
+        },
+        {
+          "id": 28,
+          "nombre": "Cocacola 1Lt.",
+          "precio": 3500.0,
+          "descripcion": "Gaseosa Coca-cola 2.5Lts",
+          "imagen": "productos/producto_28.webp"
+        },
+        {
+          "id": 29,
+          "nombre": "Botella de Agua Sin Gas 500ml",
+          "precio": 1500.0,
+          "descripcion": "Botellita de Agua 500ml.",
+          "imagen": "productos/producto_29.png"
+        }
+      ]
+    },
+    {
+      "nombre": "Personalizados",
+      "productos": []
+    },
+    {
+      "nombre": "Panchos",
+      "productos": []
+    }
+  ]
+}

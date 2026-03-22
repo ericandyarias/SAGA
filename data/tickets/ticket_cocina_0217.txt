@@ -1,0 +1,23 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0217                     09/02/2026 15:14
+================================================
+Cliente: Eric Andy Arias
+Retira en puesto
+Hora estimada: 15:23
+PEDIDO:
+1 Milanesa Completa                       $9,500
+  Extra Tomate                               +$0
+  Extra Milanesa                           +$600
+1 Gaseosa Coca, Fanta o Sprite 600ml      $2,700
+1 Fresh 1.5L                              $2,800
+------------------------------------------------
+TOTAL A PAGAR:                           $15,600
+------------------------------------------------
+Método de Pago: Transferencia/Qr
+
+
+ Pagado                      Pendiente de pago  
+================================================

@@ -1,0 +1,23 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                  Orden #0214                   
+================================================
+Cliente: Eric Andy Arias
+Domicilio: Av Rivadavia 501
+Hora estimada: 19:35
+PEDIDO:
+2 Hamburguesa Simple                     $16,000
+  Sin Tomate                                 -$0
+  Sin Lechuga                                -$0
+2 Hamburguesa J y Q                      $15,600
+  2 Extra Cheddar Salsa                  +$1,200
+1 Hamburguesa Doble Cheddar              $10,000
+1 Hamburguesa Cheddar Simple              $8,000
+------------------------------------------------
+TOTAL A PAGAR:                           $50,800
+------------------------------------------------
+================================================
+                === CLIENTE ===                 
+                08/02/2026 22:21                
+================================================

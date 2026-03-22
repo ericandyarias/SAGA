@@ -1,0 +1,26 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                  Orden #0213                   
+================================================
+Cliente: Eric Andy Arias
+Retira en puesto
+Hora estimada: 12:35
+PEDIDO:
+1 Hamburguesa Simple                      $8,000
+  Extra Lechuga                              +$0
+1 Hamburguesa J y Q                       $7,800
+  Extra Huevo                              +$300
+1 Hamburguesa Doble Cheddar              $10,000
+1 Hamburguesa Cheddar Simple              $8,000
+1 Lomito Completo S/Papas                 $8,800
+  Extra Tomate                               +$0
+1 Lomito Simple S/Papas                   $7,000
+1 Lomito J y Q S/Papas                    $7,000
+------------------------------------------------
+TOTAL A PAGAR:                           $56,900
+------------------------------------------------
+================================================
+                === CLIENTE ===                 
+                08/02/2026 22:10                
+================================================

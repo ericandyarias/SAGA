@@ -1,0 +1,25 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+=== COCINA ===                  09/02/2026 00:09
+Orden #0215                     09/02/2026 00:09
+================================================
+Cliente: Eric Andy Arias
+Retira en puesto
+Hora estimada: 12:35
+PEDIDO:
+1 Hamburguesa Simple                      $8,000
+1 Hamburguesa J y Q                       $7,800
+1 Hamburguesa Doble Cheddar              $10,000
+1 Milanesa Completa                       $9,500
+  Sin Lechuga                                -$0
+1 Milanesa Simple                         $8,800
+------------------------------------------------
+TOTAL A PAGAR:                           $44,100
+------------------------------------------------
+Forma de Pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================
