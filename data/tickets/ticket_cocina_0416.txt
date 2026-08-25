@@ -1,0 +1,21 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0416                     23/08/2026 19:14
+================================================
+Cliente: 
+Servicio en mesa
+PEDIDO:
+1 UNA DOCENA Y MEDIA EMPANADAS (x18)     $26,200
+1 Empanada (x1) de carne                  $2,000
+1 UNA DOCENA Y MEDIA EMPANADAS (x18)     $26,200
+------------------------------------------------
+TOTAL A PAGAR:                           $54,400
+------------------------------------------------
+Metodo de pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================

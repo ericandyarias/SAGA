@@ -13,7 +13,48 @@ class Navegador(ttk.Frame):
         super().__init__(parent)
         self.callback_administracion = None
         self.callback_backup = None
+        self.seccion_activa = 'pedidos'
+        self.configurar_estilos_menu()
         self.configurar_navegador()
+    
+    def configurar_estilos_menu(self):
+        """Estilos del menú: el botón activo se ve más gris."""
+        estilo = ttk.Style()
+        estilo.configure(
+            'MenuActivo.TButton',
+            background='#9aa3aa',
+            foreground='#1a1a1a',
+            lightcolor='#a8b0b6',
+            darkcolor='#7a8288',
+            bordercolor='#6d757a',
+            focuscolor='#9aa3aa',
+            font=('Arial', 9, 'bold')
+        )
+        estilo.map(
+            'MenuActivo.TButton',
+            background=[
+                ('pressed', '#7f878c'),
+                ('active', '#8b949a'),
+            ],
+            foreground=[
+                ('pressed', '#1a1a1a'),
+                ('active', '#1a1a1a'),
+            ]
+        )
+    
+    def marcar_seccion(self, seccion):
+        """Resalta solo el botón activo del menú principal."""
+        self.seccion_activa = seccion
+        botones = {
+            'pedidos': self.btn_pedidos,
+            'administracion': self.btn_administracion,
+            'backup': self.btn_backup,
+        }
+        for nombre, boton in botones.items():
+            if nombre == seccion:
+                boton.configure(style='MenuActivo.TButton')
+            else:
+                boton.configure(style='TButton')
     
     def configurar_navegador(self):
         """Configura el diseño del navegador"""
@@ -49,11 +90,13 @@ class Navegador(ttk.Frame):
         # Botón Hacer Backup
         self.btn_backup = ttk.Button(
             self,
-            text="💾 Hacer Backup",
+            text="💾 Backup",
             width=20,
             command=self.on_backup_click
         )
         self.btn_backup.pack(pady=10, padx=10)
+        
+        self.marcar_seccion('pedidos')
         
         # Espaciador
         ttk.Label(self, text="").pack(expand=True)
@@ -90,16 +133,18 @@ class Navegador(ttk.Frame):
         Nota: Actualmente la vista de pedidos es la vista principal
         Este botón está disponible para futuras funcionalidades
         """
-        # La vista principal ya muestra los pedidos
-        # Este método puede ser extendido para navegación futura
-        pass
+        self.marcar_seccion('pedidos')
     
     def on_administracion_click(self):
         """Callback cuando se hace clic en Administración"""
+        self.marcar_seccion('administracion')
         if self.callback_administracion:
             self.callback_administracion()
     
     def on_backup_click(self):
         """Callback cuando se hace clic en Hacer Backup"""
+        self.marcar_seccion('backup')
         if self.callback_backup:
             self.callback_backup()
+        else:
+            self.marcar_seccion('pedidos')

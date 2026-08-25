@@ -25,62 +25,65 @@ def obtener_ruta_backup():
     return ruta_backup
 
 
-def crear_backup():
+def crear_backup(ruta_destino=None):
     """
-    Crea un backup completo de todos los datos de AppData
-    El backup se guarda en una carpeta con fecha y hora
-    
+    Crea un backup de los datos de la aplicación.
+    Si se indica ruta_destino, guarda ahí (por ejemplo un pendrive).
+    Si no, usa Documentos\\Papucho Foodtruck Backups.
+
     Returns:
         str: Ruta del backup creado, o None si falló
     """
     try:
-        # Obtener ruta de AppData
-        from utils.rutas import obtener_ruta_appdata
-        ruta_appdata = obtener_ruta_appdata()
-        
-        if not os.path.exists(ruta_appdata):
-            # Si no existe AppData, no hay nada que respaldar
+        from utils.rutas import obtener_ruta_data
+        ruta_origen = obtener_ruta_data()
+
+        if not os.path.exists(ruta_origen):
             return None
-        
-        # Crear nombre de carpeta con fecha y hora
+
+        if ruta_destino:
+            ruta_backup_base = ruta_destino
+        else:
+            ruta_backup_base = obtener_ruta_backup()
+
+        if not os.path.isdir(ruta_backup_base):
+            try:
+                os.makedirs(ruta_backup_base, exist_ok=True)
+            except Exception:
+                return None
+
         fecha_hora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         nombre_backup = f"backup_{fecha_hora}"
-        
-        # Ruta completa del backup
-        ruta_backup_base = obtener_ruta_backup()
         ruta_backup_completo = os.path.join(ruta_backup_base, nombre_backup)
-        
-        # Copiar toda la carpeta AppData al backup,
-        # PERO sin incluir:
-        #   - La carpeta de tickets (para no acumular archivos de impresión)
-        #   - El archivo .app_lock (está bloqueado por el proceso actual)
-        #
-        # Estructura típica en AppData:
-        #   imagenes/
-        #   tickets/        <-- ESTA CARPETA NO SE RESPALDA
-        #   .app_lock       <-- ESTE ARCHIVO NO SE RESPALDA (está bloqueado)
-        #   config
-        #   ingredientes
-        #   orden_actual
-        #   productos
-        #
-        # Función personalizada para ignorar tickets y .app_lock
+
+        origen_abs = os.path.normcase(os.path.abspath(ruta_origen))
+        destino_abs = os.path.normcase(os.path.abspath(ruta_backup_completo))
+        if destino_abs == origen_abs or destino_abs.startswith(origen_abs + os.sep):
+            print("Error al crear backup: la carpeta destino no puede estar dentro de los datos")
+            return None
+
         def ignore_func(dirname, filenames):
             ignored = []
-            # Ignorar la carpeta tickets
             if 'tickets' in filenames:
                 ignored.append('tickets')
-            # Ignorar el archivo .app_lock
             if '.app_lock' in filenames:
                 ignored.append('.app_lock')
             return ignored
-        
-        shutil.copytree(
-            ruta_appdata,
-            ruta_backup_completo,
-            ignore=ignore_func
-        )
-        
+
+        try:
+            shutil.copytree(
+                ruta_origen,
+                ruta_backup_completo,
+                ignore=ignore_func
+            )
+        except Exception:
+            try:
+                if os.path.exists(ruta_backup_completo):
+                    shutil.rmtree(ruta_backup_completo, ignore_errors=True)
+            except Exception:
+                pass
+            raise
+
         return ruta_backup_completo
     except Exception as e:
         print(f"Error al crear backup: {e}")

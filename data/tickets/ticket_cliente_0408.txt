@@ -1,0 +1,22 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                === CLIENTE ===                 
+Orden #0408                     23/08/2026 12:40
+================================================
+Cliente: Pato
+Domicilio: asdasd
+PEDIDO:
+1 Empanadas (x6)                          $9,000
+1 una empanda (al precio de 12) De carne  $1,500
+1 una empanda (al precio de 12) De carne  $1,500
+1 una empanda (al precio de 12) De carne  $1,500
+------------------------------------------------
+TOTAL A PAGAR:                           $13,500
+------------------------------------------------
+Metodo de pago: Tarjeta
+
+
+================================================
+
+

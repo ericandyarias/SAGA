@@ -1,0 +1,25 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                === CLIENTE ===                 
+Orden #0422                     24/08/2026 21:07
+================================================
+Cliente: 
+Servicio en mesa
+PEDIDO:
+1 Lomito Completo S/Papas                 $8,800
+1 Lomito Simple S/Papas                   $7,000
+1 Lomito Simple con papas                 $9,000
+1 Lomito J y Q S/Papas                    $8,500
+1 Milanesa Completa con papas            $10,500
+1 Milanesa Simple S/Papas                 $7,000
+1 Papas Con Cheddar                       $7,000
+1 Papas pay                                   $1
+1 Empanada (x1) de carne                  $2,000
+1 empanada (x1) de J y Q                  $2,000
+------------------------------------------------
+TOTAL A PAGAR:                           $61,801
+------------------------------------------------
+================================================
+
+

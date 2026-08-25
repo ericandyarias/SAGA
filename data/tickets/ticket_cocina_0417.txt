@@ -1,0 +1,21 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0417                     23/08/2026 19:14
+================================================
+Cliente: tsadFS
+Domicilio: SDFsdf
+PEDIDO:
+1 Papas Fritas Bandejita                  $4,000
+1 Papas pay                                   $1
+1 Empanadas (x6)                          $9,000
+1 UNA DOCENA Y MEDIA EMPANADAS (x18)     $26,200
+------------------------------------------------
+TOTAL A PAGAR:                           $39,201
+------------------------------------------------
+Metodo de pago: Tarjeta
+
+
+ Pagado                      Pendiente de pago  
+================================================

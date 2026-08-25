@@ -17,6 +17,7 @@ from utils.productos import calcular_precio_con_ingredientes
 from utils.tickets import tiene_modificaciones_reales
 from utils.ingredientes import buscar_ingrediente_por_nombre
 from utils.imagenes import obtener_ruta_completa_imagen, cargar_imagen_tkinter
+from utils.scroll_rueda import habilitar_scroll_rueda, actualizar_region_scroll
 
 
 class Carrito(ttk.Frame):
@@ -62,6 +63,7 @@ class Carrito(ttk.Frame):
         frame_lista.grid(row=1, column=0, sticky='nsew', padx=10, pady=5)
         frame_lista.columnconfigure(0, weight=1)
         frame_lista.rowconfigure(0, weight=1)
+        self.frame_lista = frame_lista
         
         # Canvas con scrollbar para items
         canvas = tk.Canvas(frame_lista)
@@ -70,7 +72,7 @@ class Carrito(ttk.Frame):
         
         self.frame_items.bind(
             "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            lambda e: actualizar_region_scroll(canvas)
         )
         
         # Crear ventana del canvas y configurar para que se expanda
@@ -80,26 +82,14 @@ class Carrito(ttk.Frame):
         def ajustar_ancho_frame(event):
             canvas_width = event.width
             canvas.itemconfig(canvas_window, width=canvas_width)
+            actualizar_region_scroll(canvas)
         
         canvas.bind('<Configure>', ajustar_ancho_frame)
         canvas.configure(yscrollcommand=scrollbar.set)
         
-        # Configurar scroll con rueda del mouse (solo dentro del carrito)
-        def on_mousewheel(event):
-            # Verificar que el canvas todavía existe antes de usarlo
-            try:
-                if canvas.winfo_exists():
-                    canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-            except tk.TclError:
-                # El widget fue destruido, ignorar el error
-                pass
-        
-        # Vincular el evento de scroll solo al canvas y al frame_items (no globalmente)
-        canvas.bind("<MouseWheel>", on_mousewheel)
-        self.frame_items.bind("<MouseWheel>", on_mousewheel)
-        
         # Guardar referencia al canvas para poder accederlo desde otros métodos
         self.canvas_carrito = canvas
+        habilitar_scroll_rueda(frame_lista, canvas)
         
         canvas.grid(row=0, column=0, sticky='nsew')
         scrollbar.grid(row=0, column=1, sticky='ns')
@@ -128,7 +118,7 @@ class Carrito(ttk.Frame):
         # Botón Borrar Carrito (usando tk.Button para mejor control de hover)
         self.btn_borrar = tk.Button(
             frame_botones,
-            text="🗑️ Borrar Todo",
+            text="🗑️ Borrar Todo - (F1)",
             command=self.on_borrar_carrito,
             font=('Arial', 12),
             relief='flat',
@@ -142,7 +132,7 @@ class Carrito(ttk.Frame):
         # Botón Confirmar (usando tk.Button para mejor control de hover)
         self.btn_confirmar = tk.Button(
             frame_botones,
-            text="✅ Confirmar Pedido",
+            text="✅ Confirmar Pedido - (F2)",
             command=self.on_confirmar,
             font=('Arial', 12),
             relief='flat',
@@ -154,9 +144,38 @@ class Carrito(ttk.Frame):
         # Configurar estilos iniciales de los botones
         self.actualizar_estilo_boton_confirmar()
         self.actualizar_estilo_boton_borrar()
+        self._registrar_atajos()
         
         # Mostrar mensaje inicial
         self.mostrar_mensaje_vacio()
+    
+    def _hay_ventana_secundaria(self):
+        """True si hay un diálogo o ventana encima (admin, confirmación, etc.)."""
+        root = self.winfo_toplevel()
+        for w in root.winfo_children():
+            try:
+                if isinstance(w, tk.Toplevel) and w.winfo_exists() and w.winfo_viewable():
+                    return True
+            except tk.TclError:
+                continue
+        return False
+    
+    def _atajo_borrar(self, event=None):
+        if self._hay_ventana_secundaria():
+            return
+        self.on_borrar_carrito()
+        return 'break'
+    
+    def _atajo_confirmar(self, event=None):
+        if self._hay_ventana_secundaria():
+            return
+        self.on_confirmar()
+        return 'break'
+    
+    def _registrar_atajos(self):
+        """F1 borra el pedido y F2 abre confirmar, aunque el foco esté en el buscador."""
+        self.bind_all('<F1>', self._atajo_borrar)
+        self.bind_all('<F2>', self._atajo_confirmar)
     
     def mostrar_mensaje_vacio(self):
         """Muestra un mensaje cuando el carrito está vacío"""
@@ -175,6 +194,8 @@ class Carrito(ttk.Frame):
         # Actualizar estilos de los botones cuando está vacío
         self.actualizar_estilo_boton_confirmar()
         self.actualizar_estilo_boton_borrar()
+        self.update_idletasks()
+        actualizar_region_scroll(self.canvas_carrito)
     
     def agregar_item(self, producto, cantidad=1):
         """Agrega un item al carrito (siempre agrega un nuevo item base)"""
@@ -564,6 +585,8 @@ class Carrito(ttk.Frame):
         # Actualizar estilos de los botones cuando hay contenido
         self.actualizar_estilo_boton_confirmar()
         self.actualizar_estilo_boton_borrar()
+        self.update_idletasks()
+        actualizar_region_scroll(self.canvas_carrito)
     
     def editar_ingredientes(self, item_idx):
         """Abre una ventana para editar los ingredientes de un item específico"""
@@ -1097,7 +1120,7 @@ class Carrito(ttk.Frame):
         """Muestra una ventana secundaria para confirmar el pedido"""
         ventana = tk.Toplevel(self)
         ventana.title("Confirmar Pedido")
-        ventana.geometry("450x550")
+        ventana.geometry("450x620")
         ventana.resizable(False, False)
         
         # Centrar la ventana
@@ -1134,7 +1157,7 @@ class Carrito(ttk.Frame):
         frame_cliente.grid(row=0, column=0, sticky='nsew', padx=(0, 5))
         
         # Frame para forma de pago (columna derecha) - se ajusta dinámicamente
-        frame_pago = ttk.LabelFrame(frame_columnas, text="Método de Pago", padding=10)
+        frame_pago = ttk.LabelFrame(frame_columnas, text="Método de Pago - (F6)", padding=10)
         frame_pago.grid(row=0, column=1, sticky='nsew', padx=(5, 0))
         
         # Campo nombre del cliente
@@ -1150,7 +1173,7 @@ class Carrito(ttk.Frame):
         frame_tipo_pedido = ttk.Frame(frame_cliente)
         frame_tipo_pedido.pack(fill='x', pady=(0, 5))
         
-        ttk.Label(frame_tipo_pedido, text="Tipo de Pedido:", font=('Arial', 9)).pack(anchor='w', pady=(0, 5))
+        ttk.Label(frame_tipo_pedido, text="Tipo de Pedido - (F5):", font=('Arial', 9)).pack(anchor='w', pady=(0, 5))
         
         # Opciones de tipo de pedido (radiobuttons)
         opciones_tipo = [
@@ -1216,11 +1239,15 @@ class Carrito(ttk.Frame):
         
         # Validar mientras se escribe (solo números)
         def on_keypress_hora_h(event):
+            if event.keysym.startswith('F'):
+                return
             if event.char.isdigit() or event.keysym in ('BackSpace', 'Delete', 'Left', 'Right', 'Tab', 'Return'):
                 return True
             return 'break'
         
         def on_keypress_hora_m(event):
+            if event.keysym.startswith('F'):
+                return
             if event.char.isdigit() or event.keysym in ('BackSpace', 'Delete', 'Left', 'Right', 'Tab', 'Return'):
                 return True
             return 'break'
@@ -1280,11 +1307,15 @@ class Carrito(ttk.Frame):
         
         # Validar mientras se escribe (solo números)
         def on_keypress_hora_retiro_h(event):
+            if event.keysym.startswith('F'):
+                return
             if event.char.isdigit() or event.keysym in ('BackSpace', 'Delete', 'Left', 'Right', 'Tab', 'Return'):
                 return True
             return 'break'
         
         def on_keypress_hora_retiro_m(event):
+            if event.keysym.startswith('F'):
+                return
             if event.char.isdigit() or event.keysym in ('BackSpace', 'Delete', 'Left', 'Right', 'Tab', 'Return'):
                 return True
             return 'break'
@@ -1341,6 +1372,13 @@ class Carrito(ttk.Frame):
             font=('Arial', 14, 'bold'),
             foreground='#2c3e50'
         ).pack()
+
+        self.var_pedido_prueba = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            frame_principal,
+            text="Pedido de prueba - (F9)",
+            variable=self.var_pedido_prueba
+        ).pack(pady=(0, 8))
         
         # Frame para botones
         frame_botones = ttk.Frame(frame_principal)
@@ -1349,9 +1387,9 @@ class Carrito(ttk.Frame):
         # Botón Cancelar (usando tk.Button para mejor control de hover) - PRIMERO
         btn_cancelar = tk.Button(
             frame_botones,
-            text="Cancelar",
+            text="Cancelar - (F1)",
             command=ventana.destroy,
-            width=15,
+            width=18,
             bg='#e74c3c',
             fg='white',
             font=('Arial', 10),
@@ -1371,19 +1409,22 @@ class Carrito(ttk.Frame):
         btn_cancelar.bind('<Leave>', on_leave_cancelar)
         
         # Botón Aceptar (usando tk.Button para mejor control de hover) - SEGUNDO
-        btn_aceptar = tk.Button(
-            frame_botones,
-            text="Aceptar",
-            command=lambda: self.procesar_confirmacion(
-                ventana, 
-                entry_nombre.get(), 
+        def aceptar_pedido():
+            self.procesar_confirmacion(
+                ventana,
+                entry_nombre.get(),
                 entry_domicilio.get(),
                 entry_hora_retiro_h.get(),
                 entry_hora_retiro_m.get(),
                 entry_hora_estimada_h.get(),
                 entry_hora_estimada_m.get()
-            ),
-            width=15,
+            )
+
+        btn_aceptar = tk.Button(
+            frame_botones,
+            text="Aceptar - (F2)",
+            command=aceptar_pedido,
+            width=18,
             bg='#27ae60',
             fg='white',
             font=('Arial', 10),
@@ -1401,6 +1442,49 @@ class Carrito(ttk.Frame):
             btn_aceptar.config(bg='#27ae60')
         btn_aceptar.bind('<Enter>', on_enter_aceptar)
         btn_aceptar.bind('<Leave>', on_leave_aceptar)
+
+        valores_tipo = [valor for _, valor in opciones_tipo]
+        valores_pago = [valor for _, valor in opciones_pago]
+
+        def ciclo_tipo(event=None):
+            actual = self.var_tipo_pedido.get()
+            i = valores_tipo.index(actual) if actual in valores_tipo else -1
+            self.var_tipo_pedido.set(valores_tipo[(i + 1) % len(valores_tipo)])
+            self.toggle_tipo_pedido_inputs()
+            return 'break'
+
+        def ciclo_pago(event=None):
+            actual = self.var_forma_pago.get()
+            i = valores_pago.index(actual) if actual in valores_pago else -1
+            self.var_forma_pago.set(valores_pago[(i + 1) % len(valores_pago)])
+            return 'break'
+
+        def toggle_prueba(event=None):
+            self.var_pedido_prueba.set(not self.var_pedido_prueba.get())
+            return 'break'
+
+        def on_f1_cancelar(event=None):
+            ventana.destroy()
+            return 'break'
+
+        def on_f2_aceptar(event=None):
+            aceptar_pedido()
+            return 'break'
+
+        ventana.bind_all('<F1>', on_f1_cancelar)
+        ventana.bind_all('<F2>', on_f2_aceptar)
+        ventana.bind_all('<F5>', ciclo_tipo)
+        ventana.bind_all('<F6>', ciclo_pago)
+        ventana.bind_all('<F9>', toggle_prueba)
+
+        def al_cerrar_confirmacion(event):
+            if event.widget is not ventana:
+                return
+            for tecla in ('<F1>', '<F2>', '<F5>', '<F6>', '<F9>'):
+                ventana.unbind_all(tecla)
+            self._registrar_atajos()
+
+        ventana.bind('<Destroy>', al_cerrar_confirmacion)
         
         # Inicializar el estado de los inputs según el tipo de pedido por defecto
         self.toggle_tipo_pedido_inputs()
@@ -1546,6 +1630,11 @@ class Carrito(ttk.Frame):
             'items': self.items.copy(),
             'total': total
         }
+        cuenta_en_resumen = True
+        try:
+            cuenta_en_resumen = not bool(self.var_pedido_prueba.get())
+        except Exception:
+            cuenta_en_resumen = True
         
         # Cerrar ventana de confirmación
         ventana.destroy()
@@ -1570,6 +1659,12 @@ class Carrito(ttk.Frame):
                 mensaje_tickets += "\n\n⚠ No se pudo imprimir (verifique la impresora)"
         except Exception as e:
             mensaje_tickets = f"\n\n⚠ Error al generar/imprimir tickets: {str(e)}"
+
+        try:
+            from utils.ventas import registrar_pedido
+            registrar_pedido(pedido_info, cuenta_en_resumen=cuenta_en_resumen)
+        except Exception:
+            mensaje_tickets += "\n\n⚠ No se pudo guardar en el resumen de ventas"
         
         # Mostrar messagebox
         messagebox.showinfo(
@@ -1638,9 +1733,9 @@ class Carrito(ttk.Frame):
         # Botón Cancelar (izquierda)
         btn_cancelar = tk.Button(
             frame_botones,
-            text="Cancelar",
+            text="Cancelar - (F1)",
             command=ventana.destroy,
-            width=18,
+            width=20,
             bg='#95a5a6',
             fg='white',
             font=('Arial', 10, 'bold'),
@@ -1662,9 +1757,9 @@ class Carrito(ttk.Frame):
         # Botón Confirmar (derecha)
         btn_confirmar = tk.Button(
             frame_botones,
-            text="Sí, Borrar",
+            text="Sí, Borrar - (F2)",
             command=lambda: self.borrar_carrito_completo(ventana),
-            width=18,
+            width=20,
             bg='#e74c3c',
             fg='white',
             font=('Arial', 10, 'bold'),
@@ -1682,6 +1777,26 @@ class Carrito(ttk.Frame):
             btn_confirmar.config(bg='#e74c3c')
         btn_confirmar.bind('<Enter>', on_enter_confirmar_borrar)
         btn_confirmar.bind('<Leave>', on_leave_confirmar_borrar)
+
+        def on_f1_cancelar(event=None):
+            ventana.destroy()
+            return 'break'
+
+        def on_f2_borrar(event=None):
+            self.borrar_carrito_completo(ventana)
+            return 'break'
+
+        ventana.bind_all('<F1>', on_f1_cancelar)
+        ventana.bind_all('<F2>', on_f2_borrar)
+
+        def al_cerrar_dialogo(event):
+            if event.widget is not ventana:
+                return
+            ventana.unbind_all('<F1>')
+            ventana.unbind_all('<F2>')
+            self._registrar_atajos()
+
+        ventana.bind('<Destroy>', al_cerrar_dialogo)
         
         # Centrar la ventana en la pantalla
         ventana.update_idletasks()

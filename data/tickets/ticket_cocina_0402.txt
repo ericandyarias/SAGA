@@ -1,0 +1,28 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0402                     21/08/2026 23:29
+================================================
+Cliente: Messi
+Domicilio: Av Rivadavia 501
+PEDIDO:
+1 Hamburguesa Completa S/Papas            $8,000
+  2 Extra Jamon                          +$1,000
+  2 Extra Tomate                             +$0
+  Extra Carne Ham.                       +$3,000
+1 Hamburguesa Completa con papas         $10,000
+1 Hamburguesa Simple S/Papas              $6,000
+  Extra Tomate                               +$0
+  Extra Lechuga                              +$0
+  Extra Carne Ham.                       +$3,000
+  Extra Carne Ham.                       +$3,000
+1 Hamburguesa Cheddar Simple              $8,000
+------------------------------------------------
+TOTAL A PAGAR:                           $42,000
+------------------------------------------------
+Metodo de pago: Transferencia/Qr
+
+
+ Pagado                      Pendiente de pago  
+================================================

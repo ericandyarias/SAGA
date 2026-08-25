@@ -127,7 +127,7 @@ def migrar_datos_desde_instalacion():
         import shutil
         
         # Migrar archivos JSON
-        archivos_json = ['productos.json', 'ingredientes.json', 'config.json']
+        archivos_json = ['productos.json', 'ingredientes.json', 'config.json', 'ventas.json']
         for archivo in archivos_json:
             ruta_instalacion_archivo = os.path.join(ruta_instalacion, archivo)
             ruta_appdata_archivo = os.path.join(ruta_appdata, archivo)

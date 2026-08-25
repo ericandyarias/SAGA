@@ -1,0 +1,22 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0405                     23/08/2026 12:30
+================================================
+Cliente: Messi
+Servicio en mesa
+PEDIDO:
+1 Hamburguesa Completa S/Papas            $8,000
+1 Hamburguesa Completa con papas         $10,000
+  Extra Huevo                              +$500
+1 Hamburguesa Simple S/Papas              $6,000
+------------------------------------------------
+TOTAL A PAGAR:                           $24,500
+------------------------------------------------
+Metodo de pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================

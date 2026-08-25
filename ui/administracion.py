@@ -29,6 +29,26 @@ from utils.imagenes import (
     guardar_imagen_producto, guardar_imagen_ingrediente,
     cargar_imagen_tkinter, eliminar_imagen
 )
+from utils.tickets import (
+    cargar_configuracion,
+    guardar_configuracion_impresora,
+    guardar_enlace_qr,
+    obtener_enlace_qr,
+    listar_impresoras_windows,
+    imprimir_ticket_prueba,
+)
+from utils.ventas import (
+    pedidos_en_periodo,
+    calcular_resumen,
+    marcar_cuenta_en_resumen,
+    exportar_excel,
+    eliminar_pedido,
+    modificar_forma_pago,
+    obtener_pedido_por_id,
+    FORMAS_PAGO,
+)
+from ui.calendario import CalendarioPopup
+from datetime import datetime, date
 
 
 class VentanaAdministracion:
@@ -85,6 +105,30 @@ class VentanaAdministracion:
         frame_ingredientes = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(frame_ingredientes, text="🥗 Ingredientes")
         self.crear_pestaña_ingredientes(frame_ingredientes)
+        
+        # Pestaña de Ventas
+        frame_ventas = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(frame_ventas, text="📊 Ventas")
+        try:
+            self.crear_pestaña_ventas(frame_ventas)
+        except Exception:
+            ttk.Label(
+                frame_ventas,
+                text="No se pudo cargar la pestaña de ventas.\nEl resto de Administración sigue disponible.",
+                justify='center'
+            ).pack(pady=30)
+
+        # Pestaña de Configuración
+        frame_configuracion = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(frame_configuracion, text="⚙️ Configuración")
+        try:
+            self.crear_pestaña_configuracion(frame_configuracion)
+        except Exception:
+            ttk.Label(
+                frame_configuracion,
+                text="No se pudo cargar la pestaña de configuración.\nEl resto de Administración sigue disponible.",
+                justify='center'
+            ).pack(pady=30)
         
         # Centrar la ventana horizontalmente y posicionarla arriba
         self.ventana.update_idletasks()
@@ -1294,3 +1338,653 @@ class VentanaAdministracion:
         except Exception:
             self.label_preview_imagen_ing.config(image='', text="Error al cargar")
             self.imagen_preview_ingrediente = None
+
+    def crear_pestaña_ventas(self, parent):
+        """Pestaña de pedidos confirmados y resumen de control interno."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(2, weight=1)
+
+        frame_filtros = ttk.Frame(parent)
+        frame_filtros.grid(row=0, column=0, sticky='ew', pady=(0, 6))
+
+        hoy = date.today()
+        self.var_fecha_desde = tk.StringVar(value=hoy.strftime('%d/%m/%Y'))
+        self.var_fecha_hasta = tk.StringVar(value=hoy.strftime('%d/%m/%Y'))
+
+        ttk.Label(frame_filtros, text="Desde:").pack(side='left')
+        ttk.Entry(frame_filtros, textvariable=self.var_fecha_desde, width=12).pack(side='left', padx=(4, 2))
+        ttk.Button(
+            frame_filtros,
+            text="📅",
+            width=3,
+            command=lambda: self.abrir_calendario_ventas('desde')
+        ).pack(side='left', padx=(0, 12))
+
+        ttk.Label(frame_filtros, text="Hasta:").pack(side='left')
+        ttk.Entry(frame_filtros, textvariable=self.var_fecha_hasta, width=12).pack(side='left', padx=(4, 2))
+        ttk.Button(
+            frame_filtros,
+            text="📅",
+            width=3,
+            command=lambda: self.abrir_calendario_ventas('hasta')
+        ).pack(side='left')
+
+        ttk.Button(
+            frame_filtros,
+            text="Actualizar",
+            command=self.actualizar_lista_ventas,
+            width=12
+        ).pack(side='left', padx=10)
+
+        ttk.Button(
+            frame_filtros,
+            text="Exportar Excel",
+            command=self.exportar_ventas_ui,
+            width=16
+        ).pack(side='left')
+
+        self.label_resumen_ventas = ttk.Label(
+            parent,
+            text="",
+            justify='left',
+            font=('Arial', 10)
+        )
+        self.label_resumen_ventas.grid(row=1, column=0, sticky='w', pady=(0, 8))
+
+        frame_lista = ttk.LabelFrame(
+            parent,
+            text="Pedidos  ·  usá la columna Acciones para eliminar, cambiar el pago o el estado",
+            padding=8
+        )
+        frame_lista.grid(row=2, column=0, sticky='nsew')
+        frame_lista.columnconfigure(0, weight=1)
+        frame_lista.rowconfigure(0, weight=1)
+
+        columnas = ('pedido', 'estado', 'hora', 'cliente', 'tipo', 'pago', 'total', 'acciones')
+        self.tree_ventas = ttk.Treeview(
+            frame_lista,
+            columns=columnas,
+            show='headings',
+            selectmode='browse'
+        )
+        self.tree_ventas.heading('pedido', text='Pedido')
+        self.tree_ventas.heading('estado', text='Estado del pedido')
+        self.tree_ventas.heading('hora', text='Fecha y hora')
+        self.tree_ventas.heading('cliente', text='Cliente')
+        self.tree_ventas.heading('tipo', text='Tipo')
+        self.tree_ventas.heading('pago', text='Pago')
+        self.tree_ventas.heading('total', text='Total')
+        self.tree_ventas.heading('acciones', text='Acciones')
+
+        self.tree_ventas.column('pedido', width=80, anchor='center')
+        self.tree_ventas.column('estado', width=140, anchor='center')
+        self.tree_ventas.column('hora', width=140, anchor='center')
+        self.tree_ventas.column('cliente', width=140)
+        self.tree_ventas.column('tipo', width=140)
+        self.tree_ventas.column('pago', width=130)
+        self.tree_ventas.column('total', width=100, anchor='e')
+        self.tree_ventas.column('acciones', width=210, anchor='center')
+
+        scroll_ventas = ttk.Scrollbar(frame_lista, orient='vertical', command=self.tree_ventas.yview)
+        self.tree_ventas.configure(yscrollcommand=scroll_ventas.set)
+        self.tree_ventas.grid(row=0, column=0, sticky='nsew')
+        scroll_ventas.grid(row=0, column=1, sticky='ns')
+        self.tree_ventas.bind('<Button-1>', self.on_click_acciones_venta)
+
+        ttk.Label(
+            parent,
+            text="Control interno: no es un comprobante fiscal. Los pedidos no confirmados quedan en la lista pero no suman al total.",
+            foreground='gray',
+            font=('Arial', 8)
+        ).grid(row=3, column=0, sticky='w', pady=(8, 0))
+
+        self.actualizar_lista_ventas()
+
+    def _parsear_fecha_ui(self, texto):
+        try:
+            return datetime.strptime((texto or '').strip(), '%d/%m/%Y').date()
+        except Exception:
+            return None
+
+    def _fechas_personalizadas(self):
+        desde = self._parsear_fecha_ui(self.var_fecha_desde.get())
+        hasta = self._parsear_fecha_ui(self.var_fecha_hasta.get())
+        return desde, hasta
+
+    def abrir_calendario_ventas(self, cual):
+        actual = self._parsear_fecha_ui(
+            self.var_fecha_desde.get() if cual == 'desde' else self.var_fecha_hasta.get()
+        ) or date.today()
+
+        def al_elegir(fecha):
+            texto = fecha.strftime('%d/%m/%Y')
+            if cual == 'desde':
+                self.var_fecha_desde.set(texto)
+            else:
+                self.var_fecha_hasta.set(texto)
+            self.actualizar_lista_ventas()
+
+        CalendarioPopup(self.ventana, fecha_inicial=actual, al_elegir=al_elegir)
+
+    def actualizar_lista_ventas(self):
+        desde, hasta = self._fechas_personalizadas()
+        if not desde or not hasta:
+            messagebox.showwarning(
+                "Fechas",
+                "Ingrese las fechas Desde y Hasta con formato dd/mm/aaaa.",
+                parent=self.ventana
+            )
+            return
+        try:
+            pedidos, _inicio, _fin = pedidos_en_periodo('personalizado', desde=desde, hasta=hasta)
+            resumen = calcular_resumen(pedidos)
+        except Exception:
+            pedidos = []
+            resumen = {
+                'cantidad_cuentan': 0,
+                'total_cuentan': 0,
+                'cantidad_prueba': 0,
+                'total_prueba': 0,
+                'por_pago': {},
+            }
+
+        try:
+            for item in self.tree_ventas.get_children():
+                self.tree_ventas.delete(item)
+        except Exception:
+            return
+
+        for pedido in pedidos:
+            fecha_txt = pedido.get('fecha_hora') or ''
+            try:
+                from datetime import datetime as dt
+                fecha = dt.fromisoformat(fecha_txt)
+                fecha_txt = fecha.strftime('%d/%m/%Y %H:%M')
+            except Exception:
+                pass
+            estado = 'Confirmado' if pedido.get('cuenta_en_resumen', True) else 'No confirmado'
+            numero = int(pedido.get('numero') or 0)
+            total = float(pedido.get('total') or 0)
+            iid = str(pedido.get('id') or '')
+            if not iid:
+                continue
+            try:
+                self.tree_ventas.insert(
+                    '',
+                    'end',
+                    iid=iid,
+                    values=(
+                        f"#{numero:04d}",
+                        estado,
+                        fecha_txt,
+                        pedido.get('nombre_cliente') or '—',
+                        pedido.get('tipo') or '',
+                        pedido.get('forma_pago') or '',
+                        f"${total:,.2f}",
+                        "Eliminar  |  Pago  |  Estado",
+                    )
+                )
+            except Exception:
+                continue
+
+        lineas_pago = []
+        for forma, monto in resumen.get('por_pago', {}).items():
+            lineas_pago.append(f"{forma}: ${monto:,.2f}")
+        texto_pago = "   ·   ".join(lineas_pago) if lineas_pago else "sin ventas que cuenten"
+        self.label_resumen_ventas.config(
+            text=(
+                f"Pedidos confirmados: {resumen['cantidad_cuentan']}   ·   "
+                f"Total: ${resumen['total_cuentan']:,.2f}\n"
+                f"{texto_pago}\n"
+                f"Pedidos no confirmados: {resumen['cantidad_prueba']}  "
+                f"(${resumen['total_prueba']:,.2f})"
+            )
+        )
+
+    def on_click_acciones_venta(self, event):
+        try:
+            if self.tree_ventas.identify_region(event.x, event.y) != 'cell':
+                return
+            if self.tree_ventas.identify_column(event.x) != '#8':
+                return
+            fila = self.tree_ventas.identify_row(event.y)
+            if not fila:
+                return
+            self.tree_ventas.selection_set(fila)
+            self.mostrar_menu_acciones_venta(fila, event)
+        except Exception:
+            try:
+                messagebox.showerror(
+                    "Ventas",
+                    "No se pudieron abrir las acciones de este pedido.",
+                    parent=self.ventana
+                )
+            except Exception:
+                pass
+
+    def mostrar_menu_acciones_venta(self, pedido_id, event):
+        pedido = obtener_pedido_por_id(pedido_id)
+        if not pedido:
+            return
+        numero = int(pedido.get('numero') or 0)
+        confirmado = bool(pedido.get('cuenta_en_resumen', True))
+        texto_estado = "Marcar no confirmado" if confirmado else "Marcar confirmado"
+
+        menu = tk.Menu(self.ventana, tearoff=0)
+        menu.add_command(
+            label=texto_estado,
+            command=lambda: self.cambiar_estado_pedido_venta(pedido_id, not confirmado)
+        )
+        menu.add_command(
+            label="Cambiar forma de pago",
+            command=lambda: self.cambiar_pago_pedido_venta(pedido_id)
+        )
+        menu.add_separator()
+        menu.add_command(
+            label=f"Eliminar pedido #{numero:04d}",
+            command=lambda: self.eliminar_pedido_venta(pedido_id, numero)
+        )
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def cambiar_estado_pedido_venta(self, pedido_id, cuenta):
+        try:
+            if marcar_cuenta_en_resumen(pedido_id, cuenta):
+                self.actualizar_lista_ventas()
+            else:
+                messagebox.showwarning(
+                    "Ventas",
+                    "No se encontró el pedido.",
+                    parent=self.ventana
+                )
+        except Exception:
+            messagebox.showerror(
+                "Ventas",
+                "No se pudo cambiar el estado. El resto de los datos no se modificó.",
+                parent=self.ventana
+            )
+
+    def cambiar_pago_pedido_venta(self, pedido_id):
+        pedido = obtener_pedido_por_id(pedido_id)
+        if not pedido:
+            messagebox.showwarning("Ventas", "No se encontró el pedido.", parent=self.ventana)
+            return
+
+        dialogo = tk.Toplevel(self.ventana)
+        dialogo.title("Cambiar forma de pago")
+        dialogo.transient(self.ventana)
+        dialogo.grab_set()
+        dialogo.resizable(False, False)
+
+        frame = ttk.Frame(dialogo, padding=16)
+        frame.pack(fill='both', expand=True)
+
+        numero = int(pedido.get('numero') or 0)
+        ttk.Label(
+            frame,
+            text=f"Pedido #{numero:04d}",
+            font=('Arial', 11, 'bold')
+        ).pack(anchor='w', pady=(0, 8))
+        ttk.Label(frame, text="Forma de pago:").pack(anchor='w', pady=(0, 6))
+
+        var_pago = tk.StringVar(value=pedido.get('forma_pago') or 'Desconocido')
+        for forma in FORMAS_PAGO:
+            ttk.Radiobutton(frame, text=forma, variable=var_pago, value=forma).pack(anchor='w', pady=2)
+
+        def guardar():
+            try:
+                if modificar_forma_pago(pedido_id, var_pago.get()):
+                    dialogo.destroy()
+                    self.actualizar_lista_ventas()
+                else:
+                    messagebox.showwarning("Ventas", "No se encontró el pedido.", parent=dialogo)
+            except Exception:
+                messagebox.showerror(
+                    "Ventas",
+                    "No se pudo guardar la forma de pago.",
+                    parent=dialogo
+                )
+
+        frame_botones = ttk.Frame(frame)
+        frame_botones.pack(pady=(14, 0))
+        ttk.Button(frame_botones, text="Cancelar", command=dialogo.destroy, width=12).pack(side='left', padx=4)
+        ttk.Button(frame_botones, text="Guardar", command=guardar, width=12).pack(side='left', padx=4)
+
+        dialogo.update_idletasks()
+        x = self.ventana.winfo_rootx() + 80
+        y = self.ventana.winfo_rooty() + 120
+        dialogo.geometry(f"+{x}+{y}")
+
+    def eliminar_pedido_venta(self, pedido_id, numero):
+        if not messagebox.askyesno(
+            "Eliminar pedido",
+            f"¿Eliminar el pedido #{numero:04d} del resumen?\n\n"
+            "No se reutiliza el número: el siguiente pedido sigue con la numeración actual.",
+            parent=self.ventana
+        ):
+            return
+        try:
+            if eliminar_pedido(pedido_id):
+                self.actualizar_lista_ventas()
+            else:
+                messagebox.showwarning("Ventas", "No se encontró el pedido.", parent=self.ventana)
+        except Exception:
+            messagebox.showerror(
+                "Ventas",
+                "No se pudo eliminar el pedido. El resto de los datos no se modificó.",
+                parent=self.ventana
+            )
+
+    def exportar_ventas_ui(self):
+        desde, hasta = self._fechas_personalizadas()
+        if not desde or not hasta:
+            messagebox.showwarning(
+                "Fechas",
+                "Ingrese las fechas Desde y Hasta con formato dd/mm/aaaa.",
+                parent=self.ventana
+            )
+            return
+        nombre = (
+            f"resumen_ventas_{desde.strftime('%Y-%m-%d')}_"
+            f"{hasta.strftime('%Y-%m-%d')}.xlsx"
+        )
+        ruta = filedialog.asksaveasfilename(
+            parent=self.ventana,
+            title="Exportar resumen de ventas",
+            defaultextension=".xlsx",
+            initialfile=nombre,
+            filetypes=[("Excel", "*.xlsx"), ("Todos los archivos", "*.*")]
+        )
+        if not ruta:
+            return
+        try:
+            exportar_excel(ruta, 'personalizado', desde=desde, hasta=hasta)
+            messagebox.showinfo(
+                "Exportar",
+                f"Excel guardado con formato.\n\n{ruta}\n\n"
+                "Es control interno, no un documento fiscal.",
+                parent=self.ventana
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Exportar",
+                f"No se pudo exportar el resumen.\n\n{str(e)}",
+                parent=self.ventana
+            )
+
+    def crear_pestaña_configuracion(self, parent):
+        """Pestaña de configuración (impresora de tickets 80 mm)."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        contenedor = ttk.Frame(parent)
+        contenedor.grid(row=0, column=0, sticky='nsew')
+        contenedor.columnconfigure(0, weight=1)
+
+        frame_impresora = ttk.LabelFrame(
+            contenedor,
+            text="Impresora de tickets (80 mm)",
+            padding=15
+        )
+        frame_impresora.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        frame_impresora.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            frame_impresora,
+            text="Se usa para los tickets de cocina y de cliente.\n"
+                 "Funciona con cualquier comandera térmica de 80 mm instalada en Windows.",
+            justify='left'
+        ).grid(row=0, column=0, columnspan=3, sticky='w', pady=(0, 12))
+
+        ttk.Label(frame_impresora, text="Impresora:").grid(row=1, column=0, sticky='w', padx=(0, 8), pady=5)
+
+        self.var_impresora = tk.StringVar()
+        self.combo_impresora = ttk.Combobox(
+            frame_impresora,
+            textvariable=self.var_impresora,
+            state='readonly',
+            width=50
+        )
+        self.combo_impresora.grid(row=1, column=1, sticky='ew', pady=5)
+
+        btn_actualizar = ttk.Button(
+            frame_impresora,
+            text="🔄 Actualizar lista",
+            command=self.actualizar_lista_impresoras,
+            width=20
+        )
+        btn_actualizar.grid(row=1, column=2, padx=(8, 0), pady=5)
+
+        self.label_impresora_estado = ttk.Label(
+            frame_impresora,
+            text="",
+            foreground='gray'
+        )
+        self.label_impresora_estado.grid(row=2, column=0, columnspan=3, sticky='w', pady=(4, 12))
+
+        frame_botones = ttk.Frame(frame_impresora)
+        frame_botones.grid(row=3, column=0, columnspan=3, sticky='w', pady=(8, 0))
+
+        ttk.Button(
+            frame_botones,
+            text="💾 Guardar cambios",
+            command=self.guardar_configuracion_impresora_ui,
+            width=22
+        ).pack(side='left', padx=(0, 8))
+
+        ttk.Button(
+            frame_botones,
+            text="🖨 Probar impresión",
+            command=self.probar_impresora_ui,
+            width=22
+        ).pack(side='left')
+
+        frame_qr = ttk.LabelFrame(
+            contenedor,
+            text="QR del ticket de cliente",
+            padding=15
+        )
+        frame_qr.grid(row=1, column=0, sticky='ew', padx=10, pady=10)
+        frame_qr.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            frame_qr,
+            text="Si hay un enlace, se imprime un QR al final del ticket del cliente\n"
+                 "(por ejemplo Instagram). Dejá el campo vacío si no querés QR.",
+            justify='left'
+        ).grid(row=0, column=0, columnspan=3, sticky='w', pady=(0, 12))
+
+        ttk.Label(frame_qr, text="Enlace:").grid(row=1, column=0, sticky='w', padx=(0, 8), pady=5)
+
+        self.var_enlace_qr = tk.StringVar()
+        self.entry_enlace_qr = ttk.Entry(
+            frame_qr,
+            textvariable=self.var_enlace_qr,
+            width=50
+        )
+        self.entry_enlace_qr.grid(row=1, column=1, sticky='ew', pady=5)
+
+        ttk.Button(
+            frame_qr,
+            text="💾 Guardar enlace",
+            command=self.guardar_enlace_qr_ui,
+            width=20
+        ).grid(row=1, column=2, padx=(8, 0), pady=5)
+
+        self.label_qr_estado = ttk.Label(
+            frame_qr,
+            text="",
+            foreground='gray'
+        )
+        self.label_qr_estado.grid(row=2, column=0, columnspan=3, sticky='w', pady=(4, 0))
+
+        enlace_guardado = obtener_enlace_qr()
+        if enlace_guardado:
+            self.var_enlace_qr.set(enlace_guardado)
+            self.label_qr_estado.config(
+                text="El QR se imprimirá en los próximos tickets de cliente.",
+                foreground='#27ae60'
+            )
+        else:
+            self.var_enlace_qr.set("https://www.instagram.com/papuccina_foodtruck/")
+            self.label_qr_estado.config(
+                text="Sugerencia cargada. Guardá el enlace para que salga en el ticket.",
+                foreground='#e67e22'
+            )
+
+        self.actualizar_lista_impresoras()
+
+    def actualizar_lista_impresoras(self):
+        """Carga las impresoras de Windows y selecciona la guardada si existe."""
+        try:
+            impresoras = listar_impresoras_windows() or []
+            if hasattr(self, 'combo_impresora'):
+                self.combo_impresora['values'] = impresoras
+
+            config = cargar_configuracion()
+            nombre_guardado = ''
+            if isinstance(config, dict):
+                nombre_guardado = (config.get('impresora', {}) or {}).get('nombre_impresora', '') or ''
+
+            if not impresoras:
+                self.var_impresora.set('')
+                self.label_impresora_estado.config(
+                    text="No se encontraron impresoras. Instale el controlador en Windows y actualice la lista.",
+                    foreground='#c0392b'
+                )
+                return
+
+            if nombre_guardado and nombre_guardado in impresoras:
+                self.var_impresora.set(nombre_guardado)
+                self.label_impresora_estado.config(
+                    text=f"Impresora guardada: {nombre_guardado}",
+                    foreground='#27ae60'
+                )
+            elif nombre_guardado:
+                self.var_impresora.set(impresoras[0])
+                self.label_impresora_estado.config(
+                    text=f"La impresora guardada ({nombre_guardado}) no está instalada. Elija otra y guarde los cambios.",
+                    foreground='#e67e22'
+                )
+            else:
+                self.var_impresora.set(impresoras[0])
+                self.label_impresora_estado.config(
+                    text="Aún no hay impresora guardada. Elija una y presione Guardar cambios.",
+                    foreground='#e67e22'
+                )
+        except Exception:
+            try:
+                self.label_impresora_estado.config(
+                    text="No se pudo leer la lista de impresoras. Intente actualizar de nuevo.",
+                    foreground='#c0392b'
+                )
+            except Exception:
+                pass
+
+    def guardar_configuracion_impresora_ui(self):
+        """Guarda la impresora elegida para los próximos pedidos."""
+        try:
+            nombre = (self.var_impresora.get() or '').strip()
+        except Exception:
+            nombre = ''
+        if not nombre:
+            messagebox.showwarning(
+                "Configuración",
+                "Seleccione una impresora de la lista.",
+                parent=self.ventana
+            )
+            return
+
+        try:
+            guardar_configuracion_impresora(nombre)
+            self.label_impresora_estado.config(
+                text=f"Impresora guardada: {nombre}",
+                foreground='#27ae60'
+            )
+            messagebox.showinfo(
+                "Cambios realizados",
+                f"La impresora se guardó correctamente.\n\n"
+                f"Se usará en los próximos tickets:\n{nombre}",
+                parent=self.ventana
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"No se pudo guardar la configuración.\nLos datos anteriores se mantienen.\n\n{str(e)}",
+                parent=self.ventana
+            )
+
+    def guardar_enlace_qr_ui(self):
+        """Guarda el enlace que se convierte en QR en el ticket de cliente."""
+        try:
+            enlace = (self.var_enlace_qr.get() or '').strip()
+        except Exception:
+            enlace = ''
+
+        try:
+            guardar_enlace_qr(enlace)
+            enlace_final = obtener_enlace_qr()
+            if enlace_final:
+                self.var_enlace_qr.set(enlace_final)
+                self.label_qr_estado.config(
+                    text="El QR se imprimirá en los próximos tickets de cliente.",
+                    foreground='#27ae60'
+                )
+                messagebox.showinfo(
+                    "Cambios realizados",
+                    "El enlace se guardó correctamente.\n\n"
+                    "Va a aparecer como QR al final del ticket del cliente.",
+                    parent=self.ventana
+                )
+            else:
+                self.label_qr_estado.config(
+                    text="No hay enlace. El ticket de cliente se imprime sin QR.",
+                    foreground='gray'
+                )
+                messagebox.showinfo(
+                    "Cambios realizados",
+                    "Se quitó el enlace. Los próximos tickets de cliente salen sin QR.",
+                    parent=self.ventana
+                )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"No se pudo guardar el enlace.\nLos datos anteriores se mantienen.\n\n{str(e)}",
+                parent=self.ventana
+            )
+
+    def probar_impresora_ui(self):
+        """Envía un ticket de prueba a la impresora seleccionada."""
+        try:
+            nombre = (self.var_impresora.get() or '').strip()
+        except Exception:
+            nombre = ''
+        if not nombre:
+            messagebox.showwarning(
+                "Configuración",
+                "Seleccione una impresora de la lista.",
+                parent=self.ventana
+            )
+            return
+
+        try:
+            exito = imprimir_ticket_prueba(nombre)
+        except Exception:
+            exito = False
+
+        if exito:
+            messagebox.showinfo(
+                "Prueba de impresión",
+                f"Se envió un ticket de prueba a:\n{nombre}\n\n"
+                "Si no sale papel, revise que esté encendida y que el controlador sea el de una térmica 80 mm.",
+                parent=self.ventana
+            )
+        else:
+            messagebox.showerror(
+                "Prueba de impresión",
+                f"No se pudo imprimir en:\n{nombre}\n\n"
+                "Verifique que esté encendida, conectada y con el driver instalado en Windows.",
+                parent=self.ventana
+            )

@@ -8,5 +8,5 @@ pywin32>=300  # Para instancia única y funciones de Windows
 # - PyYAML (instalado automáticamente)
 # - Otras dependencias (instaladas automáticamente)
 
-# Para detección automática de impresoras USB (opcional):
-# pyusb>=1.0.0  # Descomentar si necesitas detección avanzada de impresoras
+# Para códigos QR en tickets (fallback como imagen si la impresora no soporta QR nativo):
+qrcode>=7.4

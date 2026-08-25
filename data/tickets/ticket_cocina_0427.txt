@@ -1,0 +1,21 @@
+================================================
+               PAPUCHO FOODTRUCK                
+================================================
+                 === COCINA ===                 
+Orden #0427                     24/08/2026 21:40
+================================================
+Cliente: 
+Servicio en mesa
+PEDIDO:
+1 Empanadas (x6)                          $9,000
+1 Empanadas (x12)                        $17,500
+1 Hamburguesa Completa con papas         $10,000
+------------------------------------------------
+TOTAL A PAGAR:                           $36,500
+------------------------------------------------
+Metodo de pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================

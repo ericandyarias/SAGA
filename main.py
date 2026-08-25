@@ -39,7 +39,7 @@ if not verificar_instancia_unica():
 
 # Ahora sí importar tkinter y el resto de módulos
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import time
 
 from ui.encabezado import Encabezado
@@ -50,7 +50,7 @@ from ui.administracion import VentanaAdministracion
 from ui.splash import SplashScreen
 from utils.productos import cargar_productos, guardar_productos
 from utils.ingredientes import cargar_ingredientes, guardar_ingredientes
-from utils.backup import crear_backup_automatico
+from utils.backup import crear_backup
 from utils.rutas import migrar_datos_desde_instalacion
 
 
@@ -179,82 +179,111 @@ class AplicacionCaja:
     
     def abrir_administracion(self):
         """Abre la ventana de administración"""
-        VentanaAdministracion(
-            self.root,
-            callback_actualizar=self.actualizar_productos
-        )
+        try:
+            admin = VentanaAdministracion(
+                self.root,
+                callback_actualizar=self.actualizar_productos
+            )
+
+            def al_cerrar_administracion(event):
+                try:
+                    if event.widget is admin.ventana:
+                        self.navegador.marcar_seccion('pedidos')
+                except Exception:
+                    try:
+                        self.navegador.marcar_seccion('pedidos')
+                    except Exception:
+                        pass
+
+            admin.ventana.bind('<Destroy>', al_cerrar_administracion)
+        except Exception as e:
+            try:
+                self.navegador.marcar_seccion('pedidos')
+            except Exception:
+                pass
+            messagebox.showerror(
+                "Error",
+                f"No se pudo abrir Administración.\nEl sistema sigue funcionando.\n\n{str(e)}"
+            )
     
     def actualizar_productos(self):
         """Actualiza los productos en la selección cuando se modifican en administración"""
         self.seleccion.recargar_productos()
     
     def hacer_backup_manual(self):
-        """Muestra ventana de confirmación y ejecuta backup manual"""
-        from utils.backup import crear_backup_automatico, obtener_ruta_backup
-        
-        # Mostrar ventana de confirmación
-        respuesta = messagebox.askyesno(
-            "Confirmar Backup",
-            "¿Desea crear un backup de todos los datos?\n\n"
-            "El backup se guardará en:\n"
-            f"{obtener_ruta_backup()}",
-            icon='question'
-        )
-        
-        if respuesta:
-            # Mostrar mensaje de progreso
+        """Abre el explorador para elegir dónde guardar el backup."""
+        try:
+            carpeta = filedialog.askdirectory(
+                parent=self.root,
+                title="Seleccione dónde guardar el backup",
+                initialdir=os.path.join(os.path.expanduser('~'), 'Documents')
+            )
+        except Exception:
+            carpeta = ''
+
+        if not carpeta:
+            self.navegador.marcar_seccion('pedidos')
+            return
+
+        ventana_progreso = None
+        try:
             ventana_progreso = tk.Toplevel(self.root)
             ventana_progreso.title("Creando Backup")
             ventana_progreso.geometry("400x150")
             ventana_progreso.transient(self.root)
             ventana_progreso.grab_set()
-            
-            # Centrar ventana
+
             ventana_progreso.update_idletasks()
             x = (ventana_progreso.winfo_screenwidth() // 2) - (ventana_progreso.winfo_width() // 2)
             y = (ventana_progreso.winfo_screenheight() // 2) - (ventana_progreso.winfo_height() // 2)
             ventana_progreso.geometry(f"+{x}+{y}")
-            
+
             frame_progreso = ttk.Frame(ventana_progreso, padding=20)
             frame_progreso.pack(fill='both', expand=True)
-            
-            label_progreso = ttk.Label(
+
+            ttk.Label(
                 frame_progreso,
                 text="Creando backup...\nPor favor espere.",
                 font=('Arial', 10)
-            )
-            label_progreso.pack(pady=10)
-            
+            ).pack(pady=10)
+
             ventana_progreso.update()
-            
+
+            ruta_backup = crear_backup(carpeta)
+
             try:
-                # Crear backup
-                ruta_backup, backups_eliminados = crear_backup_automatico()
-                
-                # Cerrar ventana de progreso
                 ventana_progreso.destroy()
-                
-                if ruta_backup:
-                    mensaje = f"✅ Backup creado exitosamente.\n\n"
-                    mensaje += f"Ubicación:\n{ruta_backup}\n\n"
-                    if backups_eliminados > 0:
-                        mensaje += f"Se eliminaron {backups_eliminados} backup(s) antiguo(s)."
-                    else:
-                        mensaje += "No se eliminaron backups antiguos."
-                    
-                    messagebox.showinfo("Backup Exitoso", mensaje)
-                else:
-                    messagebox.showerror(
-                        "Error",
-                        "No se pudo crear el backup.\n\n"
-                        "Verifique que haya datos para respaldar."
-                    )
-            except Exception as e:
-                ventana_progreso.destroy()
+            except Exception:
+                pass
+            ventana_progreso = None
+
+            if ruta_backup:
+                messagebox.showinfo(
+                    "Backup Exitoso",
+                    f"Backup creado correctamente.\n\nUbicación:\n{ruta_backup}"
+                )
+            else:
                 messagebox.showerror(
                     "Error",
-                    f"Error al crear backup:\n{str(e)}"
+                    "No se pudo crear el backup.\n\n"
+                    "Verifique que la carpeta exista, que tenga espacio "
+                    "y que no esté protegida contra escritura (pendrive bloqueado)."
                 )
+        except Exception as e:
+            if ventana_progreso is not None:
+                try:
+                    ventana_progreso.destroy()
+                except Exception:
+                    pass
+            messagebox.showerror(
+                "Error",
+                f"No se pudo crear el backup.\nEl sistema no se modificó.\n\n{str(e)}"
+            )
+        finally:
+            try:
+                self.navegador.marcar_seccion('pedidos')
+            except Exception:
+                pass
     
     def configurar_layout(self):
         """Configura el layout usando grid"""

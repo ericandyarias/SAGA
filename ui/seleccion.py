@@ -12,6 +12,7 @@ import threading
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from utils.productos import cargar_productos
 from utils.imagenes import cargar_imagen_tkinter
+from utils.scroll_rueda import habilitar_scroll_rueda, actualizar_region_scroll
 
 
 class Seleccion(ttk.Frame):
@@ -24,7 +25,10 @@ class Seleccion(ttk.Frame):
         self._imagenes_productos = []  # Lista para mantener referencias de imágenes
         self._imagenes_cargando = {}  # Dict para rastrear qué imágenes se están cargando
         self._lock_imagenes = threading.Lock()  # Mutex para proteger acceso a _imagenes_cargando
+        self._btns_agregar = []
+        self._indice_agregar = 0
         self.configurar_seleccion()
+        self._registrar_atajos_categorias()
     
     def recargar_productos(self):
         """Recarga los productos desde el archivo JSON"""
@@ -73,6 +77,7 @@ class Seleccion(ttk.Frame):
         # Frame para productos
         frame_productos = ttk.LabelFrame(self, text="Productos", padding=10)
         frame_productos.grid(row=2, column=0, sticky='nsew', padx=10, pady=5)
+        self.panel_lista_productos = frame_productos
         
         # Canvas con scrollbar para productos
         self.canvas_productos = tk.Canvas(frame_productos)
@@ -81,7 +86,7 @@ class Seleccion(ttk.Frame):
         
         self.frame_productos.bind(
             "<Configure>",
-            lambda e: self.canvas_productos.configure(scrollregion=self.canvas_productos.bbox("all"))
+            lambda e: actualizar_region_scroll(self.canvas_productos)
         )
         
         # Crear ventana del canvas y configurar para que se expanda
@@ -91,39 +96,12 @@ class Seleccion(ttk.Frame):
         def ajustar_ancho_frame(event):
             canvas_width = event.width
             self.canvas_productos.itemconfig(self.canvas_window, width=canvas_width)
+            actualizar_region_scroll(self.canvas_productos)
         
         self.canvas_productos.bind('<Configure>', ajustar_ancho_frame)
         self.canvas_productos.configure(yscrollcommand=scrollbar.set)
         
-        # Variable para controlar si el scroll está activo
-        self.scroll_activo = False
-        
-        # Configurar scroll con rueda del mouse (solo cuando el puntero está sobre el panel)
-        def on_mousewheel(event):
-            # Solo hacer scroll si está activo (mouse sobre el panel)
-            if self.scroll_activo:
-                try:
-                    if self.canvas_productos.winfo_exists():
-                        self.canvas_productos.yview_scroll(int(-1 * (event.delta / 120)), "units")
-                except tk.TclError:
-                    pass
-        
-        # Activar scroll cuando el mouse entra al canvas o frame
-        def on_enter(event):
-            self.scroll_activo = True
-        
-        # Desactivar scroll cuando el mouse sale del canvas o frame
-        def on_leave(event):
-            self.scroll_activo = False
-        
-        # Vincular eventos de entrada/salida del mouse
-        self.canvas_productos.bind("<Enter>", on_enter)
-        self.canvas_productos.bind("<Leave>", on_leave)
-        self.frame_productos.bind("<Enter>", on_enter)
-        self.frame_productos.bind("<Leave>", on_leave)
-        
-        # Vincular el scroll globalmente pero controlado por scroll_activo
-        self.canvas_productos.bind_all("<MouseWheel>", on_mousewheel)
+        habilitar_scroll_rueda(frame_productos, self.canvas_productos)
         
         self.canvas_productos.grid(row=0, column=0, sticky='nsew')
         scrollbar.grid(row=0, column=1, sticky='ns')
@@ -136,38 +114,100 @@ class Seleccion(ttk.Frame):
         if self.productos_data.get("categorias"):
             self.mostrar_productos(self.productos_data["categorias"][0]["nombre"])
     
+    def categorias_visibles(self):
+        """Categorías en el mismo orden que los botones (Panchos anteúltimo, Personalizados último)."""
+        categorias = self.productos_data.get("categorias", [])
+        if not categorias:
+            return []
+        
+        categoria_panchos = None
+        categoria_personalizados = None
+        categorias_otros = []
+        
+        for cat in categorias:
+            nombre = cat.get("nombre", "").lower()
+            if nombre == "panchos":
+                categoria_panchos = cat
+            elif nombre == "personalizados":
+                categoria_personalizados = cat
+            else:
+                categorias_otros.append(cat)
+        
+        categorias = categorias_otros
+        if categoria_panchos is not None:
+            categorias.append(categoria_panchos)
+        if categoria_personalizados is not None:
+            categorias.append(categoria_personalizados)
+        return categorias
+    
+    def _hay_ventana_secundaria(self):
+        root = self.winfo_toplevel()
+        for w in root.winfo_children():
+            try:
+                if isinstance(w, tk.Toplevel) and w.winfo_exists() and w.winfo_viewable():
+                    return True
+            except tk.TclError:
+                continue
+        return False
+    
+    def _foco_en_entrada(self):
+        w = self.focus_get()
+        if w is None:
+            return False
+        return w.winfo_class() in ('Entry', 'TEntry', 'Text', 'TCombobox')
+    
+    def _atajo_categoria(self, numero, event=None):
+        if self._hay_ventana_secundaria() or self._foco_en_entrada():
+            return
+        categorias = self.categorias_visibles()
+        indice = numero - 1
+        if indice < 0 or indice >= len(categorias):
+            return
+        categoria = categorias[indice]
+        if categoria["nombre"].lower() == "personalizados":
+            self.mostrar_ventana_producto_personalizado()
+        else:
+            self.mostrar_productos(categoria["nombre"], enfocar_primero=True)
+        return 'break'
+    
+    def _registrar_atajos_categorias(self):
+        for n in range(1, 9):
+            self.bind_all(f'<Key-{n}>', lambda e, i=n: self._atajo_categoria(i, e))
+    
+    def _scroll_hacia_boton(self, btn):
+        try:
+            self.canvas_productos.update_idletasks()
+            y = btn.winfo_rooty() - self.frame_productos.winfo_rooty()
+            altura = max(self.frame_productos.winfo_height(), 1)
+            canvas_h = self.canvas_productos.winfo_height()
+            if altura <= canvas_h:
+                return
+            frac = (y - 10) / altura
+            self.canvas_productos.yview_moveto(max(0.0, min(1.0, frac)))
+        except tk.TclError:
+            return
+    
+    def _enfocar_agregar(self, indice):
+        vivos = [b for b in self._btns_agregar if b.winfo_exists()]
+        self._btns_agregar = vivos
+        if not vivos:
+            return
+        indice = max(0, min(indice, len(vivos) - 1))
+        self._indice_agregar = indice
+        btn = vivos[indice]
+        btn.focus_set()
+        self._scroll_hacia_boton(btn)
+    
+    def _mover_foco_agregar(self, delta):
+        self._enfocar_agregar(self._indice_agregar + delta)
+        return 'break'
+    
     def cargar_categorias(self):
         """Carga los botones de categorías en dos filas responsivas"""
         for widget in self.frame_categorias_btns.winfo_children():
             widget.destroy()
         
-        categorias = self.productos_data.get("categorias", [])
-        
-        # Reordenar categorías visualmente:
-        # - Que "Panchos" vaya ANTEÚLTIMO
-        # - Que "Personalizados" vaya ÚLTIMO
-        # - El resto mantiene su orden original antes de esos dos
-        if categorias:
-            categoria_panchos = None
-            categoria_personalizados = None
-            categorias_otros = []
-            
-            for cat in categorias:
-                nombre = cat.get("nombre", "").lower()
-                if nombre == "panchos":
-                    categoria_panchos = cat
-                elif nombre == "personalizados":
-                    categoria_personalizados = cat
-                else:
-                    categorias_otros.append(cat)
-            
-            categorias = categorias_otros
-            # Agregar Panchos anteúltimo si existe
-            if categoria_panchos is not None:
-                categorias.append(categoria_panchos)
-            # Agregar Personalizados último si existe
-            if categoria_personalizados is not None:
-                categorias.append(categoria_personalizados)
+        categorias = self.categorias_visibles()
         
         if not categorias:
             return
@@ -192,24 +232,25 @@ class Seleccion(ttk.Frame):
             fila = idx // num_columnas
             columna = idx % num_columnas
             
+            texto = f"{categoria['nombre']} - ({idx + 1})"
             # Comportamiento especial para "Otros"
             if categoria["nombre"].lower() == "personalizados":
                 btn = ttk.Button(
                     self.frame_categorias_btns,
-                    text=categoria["nombre"],
+                    text=texto,
                     command=self.mostrar_ventana_producto_personalizado,
-                    width=15
+                    width=18
                 )
             else:
                 btn = ttk.Button(
                     self.frame_categorias_btns,
-                    text=categoria["nombre"],
-                    command=lambda c=categoria["nombre"]: self.mostrar_productos(c),
-                    width=15
+                    text=texto,
+                    command=lambda c=categoria["nombre"]: self.mostrar_productos(c, enfocar_primero=True),
+                    width=18
                 )
             btn.grid(row=fila, column=columna, sticky='ew', padx=5, pady=5)
     
-    def mostrar_productos(self, categoria_nombre):
+    def mostrar_productos(self, categoria_nombre, enfocar_primero=False):
         """Muestra los productos de una categoría"""
         self.categoria_actual = categoria_nombre
         
@@ -224,7 +265,7 @@ class Seleccion(ttk.Frame):
         
         # Actualizar el scrollregion del canvas para limpiar cualquier artefacto visual
         self.canvas_productos.update_idletasks()
-        self.canvas_productos.configure(scrollregion=self.canvas_productos.bbox("all"))
+        actualizar_region_scroll(self.canvas_productos)
         
         # Buscar la categoría
         categoria = None
@@ -237,9 +278,9 @@ class Seleccion(ttk.Frame):
             return
         
         # Mostrar productos de la categoría
-        self.mostrar_lista_productos(categoria.get("productos", []))
+        self.mostrar_lista_productos(categoria.get("productos", []), enfocar_primero=enfocar_primero)
     
-    def mostrar_lista_productos(self, productos):
+    def mostrar_lista_productos(self, productos, enfocar_primero=False):
         """Muestra una lista de productos (usado tanto para categorías como para búsqueda)"""
         # Limpiar productos actuales
         for widget in self.frame_productos.winfo_children():
@@ -252,13 +293,15 @@ class Seleccion(ttk.Frame):
         
         # Actualizar el scrollregion del canvas
         self.canvas_productos.update_idletasks()
-        self.canvas_productos.configure(scrollregion=self.canvas_productos.bbox("all"))
+        actualizar_region_scroll(self.canvas_productos)
         
         # Configurar grid del frame de productos para que ocupen todo el ancho
         self.frame_productos.columnconfigure(0, weight=1)
         
         # Tamaño fijo para las imágenes (cuadrado 80x80 píxeles)
         TAMANO_IMAGEN = 80
+        self._btns_agregar = []
+        self._indice_agregar = 0
         
         # Mostrar productos
         for idx, producto in enumerate(productos):
@@ -324,12 +367,54 @@ class Seleccion(ttk.Frame):
             ).grid(row=2, column=0, sticky='w')
             
             # Botón agregar
-            btn_agregar = ttk.Button(
+            btn_agregar = tk.Button(
                 frame_producto,
                 text="➕ Agregar",
-                command=lambda p=producto: self.on_agregar_producto(p)
+                command=lambda p=producto: self.on_agregar_producto(p),
+                font=('Arial', 11, 'bold'),
+                padx=16,
+                pady=10,
+                bg='#27ae60',
+                fg='white',
+                relief='flat',
+                cursor='hand2',
+                takefocus=True,
+                highlightthickness=2,
+                highlightbackground='#27ae60',
+                highlightcolor='#1e8449',
+                activebackground='#2ecc71',
+                activeforeground='white'
             )
-            btn_agregar.grid(row=0, column=2, padx=10, pady=5, sticky='e')
+            btn_agregar.grid(row=0, column=2, padx=10, pady=8, sticky='e')
+            self._btns_agregar.append(btn_agregar)
+
+            def on_enter_agregar(event, b=btn_agregar):
+                b.config(bg='#2ecc71')
+
+            def on_leave_agregar(event, b=btn_agregar):
+                if self.focus_get() is b:
+                    return
+                b.config(bg='#27ae60')
+
+            def on_focus_in_agregar(event, b=btn_agregar, i=idx):
+                self._indice_agregar = i
+                b.config(bg='#1e8449', highlightbackground='#145a32')
+
+            def on_focus_out_agregar(event, b=btn_agregar):
+                b.config(bg='#27ae60', highlightbackground='#27ae60')
+
+            btn_agregar.bind('<Enter>', on_enter_agregar)
+            btn_agregar.bind('<Leave>', on_leave_agregar)
+            btn_agregar.bind('<FocusIn>', on_focus_in_agregar)
+            btn_agregar.bind('<FocusOut>', on_focus_out_agregar)
+            btn_agregar.bind('<Return>', lambda e, b=btn_agregar: (b.invoke(), 'break')[1])
+            btn_agregar.bind('<Up>', lambda e: self._mover_foco_agregar(-1))
+            btn_agregar.bind('<Down>', lambda e: self._mover_foco_agregar(1))
+
+        self.canvas_productos.update_idletasks()
+        actualizar_region_scroll(self.canvas_productos)
+        if enfocar_primero:
+            self.after_idle(lambda: self._enfocar_agregar(0))
     
     def cargar_imagen_diferida(self, label_imagen, ruta_imagen, tamano, producto_id):
         """
@@ -462,9 +547,9 @@ class Seleccion(ttk.Frame):
         # Botón Cancelar
         btn_cancelar = tk.Button(
             frame_botones,
-            text="Cancelar",
+            text="Cancelar - (F1)",
             command=ventana.destroy,
-            width=15,
+            width=18,
             bg='#e74c3c',
             fg='white',
             font=('Arial', 10),
@@ -484,11 +569,14 @@ class Seleccion(ttk.Frame):
         btn_cancelar.bind('<Leave>', on_leave_cancelar)
         
         # Botón Agregar
+        def agregar_personalizado():
+            self.agregar_producto_personalizado(ventana, entry_nombre.get(), entry_precio.get())
+
         btn_agregar = tk.Button(
             frame_botones,
-            text="Agregar",
-            command=lambda: self.agregar_producto_personalizado(ventana, entry_nombre.get(), entry_precio.get()),
-            width=15,
+            text="Agregar - (F2)",
+            command=agregar_personalizado,
+            width=18,
             bg='#27ae60',
             fg='white',
             font=('Arial', 10),
@@ -506,6 +594,17 @@ class Seleccion(ttk.Frame):
             btn_agregar.config(bg='#27ae60')
         btn_agregar.bind('<Enter>', on_enter_agregar)
         btn_agregar.bind('<Leave>', on_leave_agregar)
+
+        def on_f1_cancelar(event=None):
+            ventana.destroy()
+            return 'break'
+
+        def on_f2_agregar(event=None):
+            agregar_personalizado()
+            return 'break'
+
+        ventana.bind('<F1>', on_f1_cancelar)
+        ventana.bind('<F2>', on_f2_agregar)
         
         # Centrar la ventana
         ventana.update_idletasks()
@@ -514,7 +613,7 @@ class Seleccion(ttk.Frame):
         ventana.geometry(f"+{x}+{y}")
         
         # Permitir Enter para agregar
-        entry_precio.bind('<Return>', lambda e: self.agregar_producto_personalizado(ventana, entry_nombre.get(), entry_precio.get()))
+        entry_precio.bind('<Return>', lambda e: agregar_personalizado())
     
     def agregar_producto_personalizado(self, ventana, nombre, precio_str):
         """Agrega un producto personalizado al carrito"""
