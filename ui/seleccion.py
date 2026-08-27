@@ -10,7 +10,7 @@ import threading
 
 # Agregar el directorio raíz al path para importar módulos
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from utils.productos import cargar_productos
+from utils.productos import cargar_productos, CATEGORIAS_FIJAS
 from utils.imagenes import cargar_imagen_tkinter
 from utils.scroll_rueda import habilitar_scroll_rueda, actualizar_region_scroll
 
@@ -115,30 +115,28 @@ class Seleccion(ttk.Frame):
             self.mostrar_productos(self.productos_data["categorias"][0]["nombre"])
     
     def categorias_visibles(self):
-        """Categorías en el mismo orden que los botones (Panchos anteúltimo, Personalizados último)."""
+        """Categorías en el orden de los botones. Personalizados siempre último."""
         categorias = self.productos_data.get("categorias", [])
         if not categorias:
             return []
-        
-        categoria_panchos = None
-        categoria_personalizados = None
-        categorias_otros = []
-        
+
+        por_nombre = {cat.get("nombre"): cat for cat in categorias}
+        visibles = []
+        for nombre in CATEGORIAS_FIJAS:
+            if nombre in por_nombre:
+                visibles.append(por_nombre[nombre])
+
+        personalizados = None
         for cat in categorias:
-            nombre = cat.get("nombre", "").lower()
-            if nombre == "panchos":
-                categoria_panchos = cat
-            elif nombre == "personalizados":
-                categoria_personalizados = cat
-            else:
-                categorias_otros.append(cat)
-        
-        categorias = categorias_otros
-        if categoria_panchos is not None:
-            categorias.append(categoria_panchos)
-        if categoria_personalizados is not None:
-            categorias.append(categoria_personalizados)
-        return categorias
+            nombre = cat.get("nombre", "")
+            if nombre.lower() == "personalizados":
+                personalizados = cat
+            elif nombre not in CATEGORIAS_FIJAS:
+                visibles.append(cat)
+
+        if personalizados is not None:
+            visibles.append(personalizados)
+        return visibles
     
     def _hay_ventana_secundaria(self):
         root = self.winfo_toplevel()
@@ -171,7 +169,7 @@ class Seleccion(ttk.Frame):
         return 'break'
     
     def _registrar_atajos_categorias(self):
-        for n in range(1, 9):
+        for n in range(1, 10):
             self.bind_all(f'<Key-{n}>', lambda e, i=n: self._atajo_categoria(i, e))
     
     def _scroll_hacia_boton(self, btn):
