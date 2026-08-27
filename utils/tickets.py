@@ -221,7 +221,7 @@ def imprimir_qr_ticket_cliente(printer, enlace):
 
     try:
         printer.set(align='center', font='a', width=1, height=1, bold=False)
-        printer.text("Seguino en:\n")
+        printer.text("Seguinos en:\n")
     except Exception:
         pass
 
@@ -953,7 +953,7 @@ def guardar_ticket_texto(pedido_info, tipo_ticket):
         enlace = obtener_enlace_qr()
         if enlace:
             contenido.append("")
-            contenido.append(formatear_texto_centrado("Seguino en:", ancho_caracteres))
+            contenido.append(formatear_texto_centrado("Seguinos en:", ancho_caracteres))
             contenido.append(formatear_texto_centrado(enlace, ancho_caracteres))
         contenido.append("")
         contenido.append("")
