@@ -1,11 +1,15 @@
 {
   "impresora": {
     "ancho_ticket": 80,
-    "modelo": "Xprinter EX-E200M",
-    "nombre_impresora": "XP-80C"
+    "modelo": "Térmica 80mm",
+    "nombre_impresora": ""
   },
   "tickets": {
     "incluir_fecha_hora": true,
-    "lineas_corte": 3
+    "lineas_corte": 3,
+    "enlace_qr": ""
+  },
+  "sistema": {
+    "nombre": "SAGA - Sistema Administrativo Gastronómico - Arias"
   }
 }

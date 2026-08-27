@@ -1,1 +1,1 @@
-# Módulo UI para el sistema de caja del foodtruck
+# Módulo UI de SAGA - Sistema Administrativo Gastronómico - Arias

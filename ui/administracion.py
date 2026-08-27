@@ -34,6 +34,8 @@ from utils.tickets import (
     guardar_configuracion_impresora,
     guardar_enlace_qr,
     obtener_enlace_qr,
+    obtener_nombre_sistema,
+    guardar_nombre_sistema,
     listar_impresoras_windows,
     imprimir_ticket_prueba,
 )
@@ -54,16 +56,18 @@ from datetime import datetime, date
 class VentanaAdministracion:
     """Ventana de administración de productos"""
     
-    def __init__(self, parent, callback_actualizar=None):
+    def __init__(self, parent, callback_actualizar=None, callback_titulo=None):
         """
         Inicializa la ventana de administración
         
         Args:
             parent: Ventana padre
             callback_actualizar: Función a llamar cuando se actualicen los productos
+            callback_titulo: Función a llamar cuando cambie el nombre visible del sistema
         """
         self.parent = parent
         self.callback_actualizar = callback_actualizar
+        self.callback_titulo = callback_titulo
         self.producto_seleccionado = None
         
         self.crear_ventana()
@@ -1715,7 +1719,7 @@ class VentanaAdministracion:
             )
 
     def crear_pestaña_configuracion(self, parent):
-        """Pestaña de configuración (impresora de tickets 80 mm)."""
+        """Pestaña de configuración (nombre visible, impresora y QR)."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
@@ -1723,12 +1727,44 @@ class VentanaAdministracion:
         contenedor.grid(row=0, column=0, sticky='nsew')
         contenedor.columnconfigure(0, weight=1)
 
+        frame_nombre = ttk.LabelFrame(
+            contenedor,
+            text="Nombre del sistema",
+            padding=15
+        )
+        frame_nombre.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        frame_nombre.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            frame_nombre,
+            text="Este texto se muestra en el encabezado y en los tickets.\n"
+                 "No cambia el nombre de instalación del sistema.",
+            justify='left'
+        ).grid(row=0, column=0, columnspan=3, sticky='w', pady=(0, 12))
+
+        ttk.Label(frame_nombre, text="Título:").grid(row=1, column=0, sticky='w', padx=(0, 8), pady=5)
+
+        self.var_nombre_sistema = tk.StringVar(value=obtener_nombre_sistema())
+        self.entry_nombre_sistema = ttk.Entry(
+            frame_nombre,
+            textvariable=self.var_nombre_sistema,
+            width=50
+        )
+        self.entry_nombre_sistema.grid(row=1, column=1, sticky='ew', pady=5)
+
+        ttk.Button(
+            frame_nombre,
+            text="💾 Guardar título",
+            command=self.guardar_nombre_sistema_ui,
+            width=20
+        ).grid(row=1, column=2, padx=(8, 0), pady=5)
+
         frame_impresora = ttk.LabelFrame(
             contenedor,
             text="Impresora de tickets (80 mm)",
             padding=15
         )
-        frame_impresora.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        frame_impresora.grid(row=1, column=0, sticky='ew', padx=10, pady=10)
         frame_impresora.columnconfigure(1, weight=1)
 
         ttk.Label(
@@ -1786,7 +1822,7 @@ class VentanaAdministracion:
             text="QR del ticket de cliente",
             padding=15
         )
-        frame_qr.grid(row=1, column=0, sticky='ew', padx=10, pady=10)
+        frame_qr.grid(row=2, column=0, sticky='ew', padx=10, pady=10)
         frame_qr.columnconfigure(1, weight=1)
 
         ttk.Label(
@@ -1813,28 +1849,39 @@ class VentanaAdministracion:
             width=20
         ).grid(row=1, column=2, padx=(8, 0), pady=5)
 
-        self.label_qr_estado = ttk.Label(
-            frame_qr,
-            text="",
-            foreground='gray'
-        )
-        self.label_qr_estado.grid(row=2, column=0, columnspan=3, sticky='w', pady=(4, 0))
-
         enlace_guardado = obtener_enlace_qr()
-        if enlace_guardado:
-            self.var_enlace_qr.set(enlace_guardado)
-            self.label_qr_estado.config(
-                text="El QR se imprimirá en los próximos tickets de cliente.",
-                foreground='#27ae60'
-            )
-        else:
-            self.var_enlace_qr.set("https://www.instagram.com/papuccina_foodtruck/")
-            self.label_qr_estado.config(
-                text="Sugerencia cargada. Guardá el enlace para que salga en el ticket.",
-                foreground='#e67e22'
-            )
+        self.var_enlace_qr.set(enlace_guardado or "")
 
         self.actualizar_lista_impresoras()
+
+    def guardar_nombre_sistema_ui(self):
+        """Guarda el título visible (encabezado y tickets)."""
+        try:
+            nombre = (self.var_nombre_sistema.get() or '').strip()
+        except Exception:
+            nombre = ''
+
+        try:
+            nombre_final = guardar_nombre_sistema(nombre)
+            self.var_nombre_sistema.set(nombre_final)
+            if self.callback_titulo:
+                try:
+                    self.callback_titulo(nombre_final)
+                except Exception:
+                    pass
+            messagebox.showinfo(
+                "Cambios realizados",
+                "El título se guardó correctamente.\n\n"
+                "Aparece en el encabezado y en los tickets.\n"
+                "El nombre de instalación del sistema no cambia.",
+                parent=self.ventana
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"No se pudo guardar el título.\nEl valor anterior se mantiene.\n\n{str(e)}",
+                parent=self.ventana
+            )
 
     def actualizar_lista_impresoras(self):
         """Carga las impresoras de Windows y selecciona la guardada si existe."""
@@ -1928,10 +1975,6 @@ class VentanaAdministracion:
             enlace_final = obtener_enlace_qr()
             if enlace_final:
                 self.var_enlace_qr.set(enlace_final)
-                self.label_qr_estado.config(
-                    text="El QR se imprimirá en los próximos tickets de cliente.",
-                    foreground='#27ae60'
-                )
                 messagebox.showinfo(
                     "Cambios realizados",
                     "El enlace se guardó correctamente.\n\n"
@@ -1939,10 +1982,6 @@ class VentanaAdministracion:
                     parent=self.ventana
                 )
             else:
-                self.label_qr_estado.config(
-                    text="No hay enlace. El ticket de cliente se imprime sin QR.",
-                    foreground='gray'
-                )
                 messagebox.showinfo(
                     "Cambios realizados",
                     "Se quitó el enlace. Los próximos tickets de cliente salen sin QR.",

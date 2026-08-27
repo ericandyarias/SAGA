@@ -13,7 +13,7 @@ _mutex_handle = None
 _lock_file_handle = None
 
 # Título de la ventana principal (debe coincidir con el título en main.py)
-TITULO_VENTANA = "PAPUCHO FOODTRUCK - Sistema de Caja"
+TITULO_VENTANA = "SAGA - Sistema Administrativo Gastronómico - Arias"
 
 
 def verificar_instancia_unica():
@@ -46,7 +46,7 @@ def verificar_instancia_unica():
         
         # Crear un mutex con un nombre único para la aplicación
         # Usar "Global\" para que funcione entre sesiones de usuario
-        mutex_nombre = "Global\\PapuchoFoodtruck_SingleInstance_Mutex_v3"
+        mutex_nombre = "Global\\SAGA_SingleInstance_Mutex_v1"
         
         # Intentar crear el mutex (True = el proceso actual es el dueño inicial)
         _mutex_handle = win32event.CreateMutex(None, True, mutex_nombre)

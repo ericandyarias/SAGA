@@ -1,5 +1,5 @@
 """
-Sistema de Caja para Foodtruck - PAPUCHO FOODTRUCK
+SAGA - Sistema Administrativo Gastronómico - Arias
 Aplicación principal que integra todos los componentes de la UI
 """
 import sys
@@ -21,9 +21,9 @@ if not verificar_instancia_unica():
     try:
         import ctypes
         if ventana_activada:
-            mensaje = "Papucho Foodtruck ya está ejecutándose.\n\nSe ha traído la ventana existente al frente."
+            mensaje = "SAGA ya está ejecutándose.\n\nSe ha traído la ventana existente al frente."
         else:
-            mensaje = "Papucho Foodtruck ya está ejecutándose.\n\nNo se pudo encontrar la ventana existente.\n\nPor favor, cierre la instancia actual antes de abrir una nueva."
+            mensaje = "SAGA ya está ejecutándose.\n\nNo se pudo encontrar la ventana existente.\n\nPor favor, cierre la instancia actual antes de abrir una nueva."
         
         ctypes.windll.user32.MessageBoxW(
             0,
@@ -32,7 +32,7 @@ if not verificar_instancia_unica():
             0x30  # MB_ICONWARNING
         )
     except Exception as e:
-        print(f"Papucho Foodtruck ya está ejecutándose. Error al mostrar mensaje: {e}")
+        print(f"SAGA ya está ejecutándose. Error al mostrar mensaje: {e}")
     
     # Cerrar esta instancia
     sys.exit(0)
@@ -66,7 +66,7 @@ class AplicacionCaja:
     
     def configurar_ventana(self):
         """Configura la ventana principal"""
-        self.root.title("PAPUCHO FOODTRUCK - Sistema de Caja")
+        self.root.title("SAGA - Sistema Administrativo Gastronómico - Arias")
         # Pantalla completa
         self.root.state('zoomed')  # Windows
         # Alternativa para Linux/Mac: self.root.attributes('-zoomed', True)
@@ -182,7 +182,8 @@ class AplicacionCaja:
         try:
             admin = VentanaAdministracion(
                 self.root,
-                callback_actualizar=self.actualizar_productos
+                callback_actualizar=self.actualizar_productos,
+                callback_titulo=self.encabezado.actualizar_titulo
             )
 
             def al_cerrar_administracion(event):

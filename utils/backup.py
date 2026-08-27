@@ -18,7 +18,7 @@ def obtener_ruta_backup():
     # Usar una carpeta fija en el escritorio o en Documentos
     # Opción 1: En Documentos (más discreto)
     documentos = os.path.join(os.path.expanduser('~'), 'Documents')
-    ruta_backup = os.path.join(documentos, 'Papucho Foodtruck Backups')
+    ruta_backup = os.path.join(documentos, 'SAGA Backups')
     
     # Crear la carpeta si no existe
     os.makedirs(ruta_backup, exist_ok=True)
@@ -29,7 +29,7 @@ def crear_backup(ruta_destino=None):
     """
     Crea un backup de los datos de la aplicación.
     Si se indica ruta_destino, guarda ahí (por ejemplo un pendrive).
-    Si no, usa Documentos\\Papucho Foodtruck Backups.
+    Si no, usa Documentos\\SAGA Backups.
 
     Returns:
         str: Ruta del backup creado, o None si falló

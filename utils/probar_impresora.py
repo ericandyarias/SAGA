@@ -37,7 +37,7 @@ def probar_impresora():
         with open(ruta_config, 'r', encoding='utf-8') as f:
             config = json.load(f)
         
-        nombre_impresora = config.get('impresora', {}).get('nombre_impresora', 'XP-80C')
+        nombre_impresora = config.get('impresora', {}).get('nombre_impresora', '')
         
         if not nombre_impresora:
             print("[ERROR] No hay nombre de impresora configurado")
@@ -52,7 +52,7 @@ def probar_impresora():
         print("[ERROR] Archivo de configuracion no encontrado")
         print("Se creara uno con valores por defecto")
         # El módulo tickets.py creará la configuración automáticamente
-        nombre_impresora = "XP-80C"
+        nombre_impresora = ""
     except Exception as e:
         print(f"[ERROR] Error al cargar configuracion: {e}")
         return False
@@ -120,7 +120,13 @@ def probar_impresora():
         # Configurar impresora
         printer.set(align='center', font='a', width=1, height=1, bold=True)
         printer.text("TICKET DE PRUEBA\n")
-        printer.text("Impresora XP-80C\n")
+        try:
+            from utils.tickets import obtener_nombre_sistema, lineas_nombre_sistema
+            for linea in lineas_nombre_sistema(obtener_nombre_sistema()):
+                printer.text(linea + "\n")
+        except Exception:
+            printer.text("SAGA - Sistema Administrativo Gastronomico - Arias\n")
+        printer.text("Impresora termica 80mm\n")
         printer.set(align='center')
         printer.text("=" * 48 + "\n")
         printer.set(align='left', font='a', width=1, height=1, bold=False)

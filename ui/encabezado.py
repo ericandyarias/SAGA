@@ -1,32 +1,47 @@
 """
 Módulo para el encabezado de la aplicación
-Muestra el título "PAPUCHO FOODTRUCK"
+Muestra el título configurable del local (una sola línea)
 """
 import tkinter as tk
 from tkinter import ttk
 
+from utils.tickets import obtener_nombre_sistema
+
 
 class Encabezado(ttk.Frame):
-    """Frame del encabezado con el título del foodtruck"""
+    """Frame del encabezado con el título del sistema"""
     
     def __init__(self, parent):
         super().__init__(parent)
+        self.label_titulo = None
         self.configurar_encabezado()
     
     def configurar_encabezado(self):
         """Configura el diseño del encabezado"""
-        # Configurar estilo del frame
         self.config(relief='raised', borderwidth=2)
         
-        # Título principal
-        titulo = ttk.Label(
+        self.label_titulo = ttk.Label(
             self,
-            text="PAPUCHO FOODTRUCK",
-            font=('Arial', 20, 'bold'),
-            foreground='#2c3e50'
+            text=obtener_nombre_sistema(),
+            font=('Arial', 16, 'bold'),
+            foreground='#2c3e50',
+            anchor='center',
+            justify='center'
         )
-        titulo.pack(pady=10)
+        self.label_titulo.pack(pady=10, fill='x', padx=10)
+        self.bind('<Configure>', self._ajustar_titulo)
         
-        # Línea separadora
         separador = ttk.Separator(self, orient='horizontal')
         separador.pack(fill='x', padx=10, pady=3)
+
+    def _ajustar_titulo(self, event=None):
+        if not self.label_titulo:
+            return
+        ancho = max(self.winfo_width() - 40, 200)
+        self.label_titulo.configure(wraplength=ancho)
+
+    def actualizar_titulo(self, nombre=None):
+        """Actualiza el título visible sin recargar la ventana."""
+        if not self.label_titulo:
+            return
+        self.label_titulo.config(text=nombre or obtener_nombre_sistema())

@@ -7,6 +7,9 @@
   "tickets": {
     "incluir_fecha_hora": true,
     "lineas_corte": 3,
-    "enlace_qr": "https://www.instagram.com/papuccina_foodtruck/"
+    "enlace_qr": "https://mail.google.com/mail/u/0/#inbox"
+  },
+  "sistema": {
+    "nombre": "SAGA - Sistema Administrativo Gastronómico - Arias"
   }
 }

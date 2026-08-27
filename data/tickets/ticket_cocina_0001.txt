@@ -1,0 +1,23 @@
+================================================
+  SAGA - Sistema Administrativo Gastronómico -  
+                     Arias                      
+================================================
+                 === COCINA ===                 
+Orden #0001                     26/08/2026 21:09
+================================================
+Cliente: 
+Servicio en mesa
+PEDIDO:
+1 Hamburguesa Completa S/Papas            $8,000
+1 Hamburguesa Completa con papas         $10,000
+1 Hamburguesa Simple S/Papas              $6,000
+1 Hamburguesa Cheddar Simple              $8,000
+------------------------------------------------
+TOTAL A PAGAR:                           $32,000
+------------------------------------------------
+Metodo de pago:
+
+  Efectivo      Transferencia/Qr      Tarjeta   
+
+ Pagado                      Pendiente de pago  
+================================================

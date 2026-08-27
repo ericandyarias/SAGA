@@ -235,7 +235,7 @@ def exportar_excel(ruta_archivo, periodo="hoy", desde=None, hasta=None):
         return {"v": valor, "s": estilo, "n": numero}
 
     filas = [
-        [c("PAPUCHO FOODTRUCK — Resumen de ventas", 1)],
+        [c("SAGA — Resumen de ventas", 1)],
         [c("Control interno · no es un documento fiscal", 2)],
         [c("Periodo", 3), c(etiqueta, 5), c("Desde", 3), c(desde_txt, 5), c("Hasta", 3), c(hasta_txt, 5)],
         [],

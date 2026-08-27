@@ -56,22 +56,14 @@ class SplashScreen:
         # Título
         label_titulo = tk.Label(
             frame_principal,
-            text="🍔 PAPUCHO FOODTRUCK",
-            font=('Arial', 24, 'bold'),
+            text="SAGA - Sistema Administrativo Gastronómico - Arias",
+            font=('Arial', 14, 'bold'),
             bg='#2c3e50',
-            fg='white'
+            fg='white',
+            wraplength=460,
+            justify='center'
         )
-        label_titulo.pack(pady=(50, 10))
-        
-        # Subtítulo
-        label_subtitulo = tk.Label(
-            frame_principal,
-            text="Sistema de Caja",
-            font=('Arial', 14),
-            bg='#2c3e50',
-            fg='#ecf0f1'
-        )
-        label_subtitulo.pack(pady=(0, 30))
+        label_titulo.pack(pady=(50, 30))
         
         # Barra de progreso
         self.progress_var = tk.DoubleVar()

@@ -30,6 +30,9 @@ def obtener_ruta_config():
     return obtener_ruta_json('config.json')
 
 
+NOMBRE_SISTEMA_DEFAULT = "SAGA - Sistema Administrativo Gastronómico - Arias"
+
+
 def _config_por_defecto():
     return {
         "impresora": {
@@ -41,6 +44,9 @@ def _config_por_defecto():
             "incluir_fecha_hora": True,
             "lineas_corte": 3,
             "enlace_qr": ""
+        },
+        "sistema": {
+            "nombre": NOMBRE_SISTEMA_DEFAULT
         }
     }
 
@@ -55,13 +61,17 @@ def cargar_configuracion():
             return _config_por_defecto()
         config.setdefault("impresora", {})
         config.setdefault("tickets", {"incluir_fecha_hora": True, "lineas_corte": 3, "enlace_qr": ""})
+        config.setdefault("sistema", {"nombre": NOMBRE_SISTEMA_DEFAULT})
         if not isinstance(config.get("impresora"), dict):
             config["impresora"] = _config_por_defecto()["impresora"]
         if not isinstance(config.get("tickets"), dict):
             config["tickets"] = _config_por_defecto()["tickets"]
+        if not isinstance(config.get("sistema"), dict):
+            config["sistema"] = _config_por_defecto()["sistema"]
         config["tickets"].setdefault("incluir_fecha_hora", True)
         config["tickets"].setdefault("lineas_corte", 3)
         config["tickets"].setdefault("enlace_qr", "")
+        config["sistema"].setdefault("nombre", NOMBRE_SISTEMA_DEFAULT)
         return config
     except FileNotFoundError:
         config_default = _config_por_defecto()
@@ -153,6 +163,52 @@ def obtener_enlace_qr(config=None):
     return normalizar_enlace_qr(tickets.get("enlace_qr", ""))
 
 
+def obtener_nombre_sistema(config=None):
+    """Nombre visible en encabezado y tickets. No cambia el nombre de instalación."""
+    if config is None:
+        config = cargar_configuracion()
+    sistema = config.get("sistema") if isinstance(config, dict) else {}
+    if not isinstance(sistema, dict):
+        return NOMBRE_SISTEMA_DEFAULT
+    nombre = (sistema.get("nombre") or "").strip()
+    return nombre or NOMBRE_SISTEMA_DEFAULT
+
+
+def guardar_nombre_sistema(nombre):
+    """Guarda el título que se muestra en pantalla y en los tickets."""
+    texto = (nombre or "").strip() or NOMBRE_SISTEMA_DEFAULT
+    config = cargar_configuracion()
+    if not isinstance(config, dict):
+        config = _config_por_defecto()
+    config.setdefault("sistema", {"nombre": NOMBRE_SISTEMA_DEFAULT})
+    if not isinstance(config.get("sistema"), dict):
+        config["sistema"] = {"nombre": NOMBRE_SISTEMA_DEFAULT}
+    config["sistema"]["nombre"] = texto
+    _guardar_json_atomico(obtener_ruta_config(), config)
+    return texto
+
+
+def lineas_nombre_sistema(nombre, ancho=48):
+    """Parte el título en líneas que entran en el ticket de 80 mm."""
+    texto = (nombre or "").strip() or NOMBRE_SISTEMA_DEFAULT
+    if len(texto) <= ancho:
+        return [texto]
+    palabras = texto.split()
+    lineas = []
+    actual = ""
+    for palabra in palabras:
+        prueba = palabra if not actual else f"{actual} {palabra}"
+        if len(prueba) <= ancho:
+            actual = prueba
+        else:
+            if actual:
+                lineas.append(actual)
+            actual = palabra if len(palabra) <= ancho else palabra[:ancho]
+    if actual:
+        lineas.append(actual)
+    return lineas or [NOMBRE_SISTEMA_DEFAULT]
+
+
 def imprimir_qr_ticket_cliente(printer, enlace):
     """
     Imprime un QR al final del ticket de cliente.
@@ -165,7 +221,7 @@ def imprimir_qr_ticket_cliente(printer, enlace):
 
     try:
         printer.set(align='center', font='a', width=1, height=1, bold=False)
-        printer.text("Seguinos en Instagram\n")
+        printer.text("Seguino en:\n")
     except Exception:
         pass
 
@@ -467,9 +523,10 @@ def imprimir_ticket_escpos(pedido_info, tipo_ticket):
         config = cargar_configuracion()
         ancho_caracteres = 48  # Ancho estándar para impresora de 80mm
         
-        # Inicializar impresora
-        printer.set(align='center', font='a', width=2, height=2, bold=True)
-        printer.text("PAPUCHO FOODTRUCK\n")
+        # Título configurable (una sola línea / envuelto si no entra)
+        printer.set(align='center', font='a', width=1, height=1, bold=True)
+        for linea in lineas_nombre_sistema(obtener_nombre_sistema(config), ancho_caracteres):
+            printer.text(linea + "\n")
         
         # Separador grueso
         printer.set(align='center')
@@ -733,7 +790,8 @@ def guardar_ticket_texto(pedido_info, tipo_ticket):
     
     contenido = []
     contenido.append("=" * ancho_caracteres)
-    contenido.append(formatear_texto_centrado("PAPUCHO FOODTRUCK", ancho_caracteres))
+    for linea in lineas_nombre_sistema(obtener_nombre_sistema(config), ancho_caracteres):
+        contenido.append(formatear_texto_centrado(linea, ancho_caracteres))
     contenido.append("=" * ancho_caracteres)
     
     # Marca del ticket (COCINA o CLIENTE) - sin fecha
@@ -895,7 +953,7 @@ def guardar_ticket_texto(pedido_info, tipo_ticket):
         enlace = obtener_enlace_qr()
         if enlace:
             contenido.append("")
-            contenido.append(formatear_texto_centrado("Seguinos en Instagram", ancho_caracteres))
+            contenido.append(formatear_texto_centrado("Seguino en:", ancho_caracteres))
             contenido.append(formatear_texto_centrado(enlace, ancho_caracteres))
         contenido.append("")
         contenido.append("")
@@ -976,7 +1034,8 @@ def imprimir_ticket_prueba(nombre_impresora=None):
         
         printer.set(align='center', font='a', width=1, height=1, bold=True)
         printer.text("TICKET DE PRUEBA\n")
-        printer.text("PAPUCHO FOODTRUCK\n")
+        for linea in lineas_nombre_sistema(obtener_nombre_sistema(), 48):
+            printer.text(linea + "\n")
         printer.set(align='center', bold=False)
         printer.text("Impresora termica 80mm\n")
         if nombre_mostrar:

@@ -32,14 +32,14 @@ def obtener_ruta_appdata():
     Solo se usa cuando la aplicación está instalada (empaquetada).
     
     Returns:
-        str: Ruta completa de AppData\\Papucho Foodtruck
+        str: Ruta completa de AppData\\SAGA
     """
     appdata = os.getenv('APPDATA')
     if not appdata:
         # Fallback si APPDATA no está definido
         appdata = os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming')
     
-    ruta_appdata = os.path.join(appdata, 'Papucho Foodtruck')
+    ruta_appdata = os.path.join(appdata, 'SAGA')
     # Crear la carpeta si no existe
     os.makedirs(ruta_appdata, exist_ok=True)
     return ruta_appdata
