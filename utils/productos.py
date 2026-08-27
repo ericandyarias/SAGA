@@ -9,12 +9,13 @@ import os
 # Categorías fijas del sistema
 CATEGORIAS_FIJAS = [
     "Hamburguesas",
-    "Lomitos",
-    "Milanesas",
-    "Panchos",
+    "Bondiolas",
+    "Matambre",
     "Fritas",
-    "Empanadas",
-    "Bebidas"
+    "Chacarera",
+    "Bebidas",
+    "Panchos",
+    "Pizza/Choripan",
 ]
 
 

@@ -2,12 +2,12 @@
   "impresora": {
     "ancho_ticket": 80,
     "modelo": "Térmica 80mm",
-    "nombre_impresora": "POS-80-Series"
+    "nombre_impresora": ""
   },
   "tickets": {
     "incluir_fecha_hora": true,
     "lineas_corte": 3,
-    "enlace_qr": "https://mail.google.com/mail/u/0/#inbox"
+    "enlace_qr": ""
   },
   "sistema": {
     "nombre": "SAGA - Sistema Administrativo Gastronómico - Arias"
