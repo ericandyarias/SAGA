@@ -16,14 +16,31 @@ if not exist "main.py" (
     exit /b 1
 )
 
-set "PYTHON=python"
+set "PYTHON="
 if exist ".venv\Scripts\python.exe" set "PYTHON=.venv\Scripts\python.exe"
 
-"%PYTHON%" --version >nul 2>&1
-if errorlevel 1 (
+if "%PYTHON%"=="" (
+    where python >nul 2>&1
+    if not errorlevel 1 set "PYTHON=python"
+)
+
+if "%PYTHON%"=="" (
+    where py >nul 2>&1
+    if not errorlevel 1 set "PYTHON=py"
+)
+
+if "%PYTHON%"=="" (
+    for /d %%D in ("%LocalAppData%\Programs\Python\Python3*") do (
+        if exist "%%D\python.exe" set "PYTHON=%%D\python.exe"
+    )
+)
+
+if "%PYTHON%"=="" (
     echo ERROR: Python no esta instalado o no esta en el PATH.
     echo Instala Python desde https://www.python.org/downloads/
     echo Marca "Add Python to PATH" durante la instalacion.
+    echo.
+    echo Si ya lo instalaste, podes usar: py -m pip install -r requirements.txt
     pause
     exit /b 1
 )
