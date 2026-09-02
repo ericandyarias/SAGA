@@ -5,8 +5,8 @@
       "nombre": "Jamon",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 500.0,
       "precio_resta": 200.0,
@@ -17,8 +17,8 @@
       "nombre": "Queso",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 800.0,
       "precio_resta": 200.0,
@@ -39,8 +39,8 @@
       "nombre": "Huevo",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 500.0,
       "precio_resta": 200.0,
@@ -51,8 +51,8 @@
       "nombre": "Tomate",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 0.0,
       "precio_resta": 0.0,
@@ -63,8 +63,8 @@
       "nombre": "Lechuga",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 0.0,
       "precio_resta": 0.0,
@@ -91,62 +91,15 @@
       "imagen": "ingredientes/ingrediente_9.png"
     },
     {
-      "id": 10,
-      "nombre": "Milanesa",
-      "categorias": [
-        "Milanesas"
-      ],
-      "precio_extra": 600.0,
-      "precio_resta": 600.0,
-      "imagen": "ingredientes/ingrediente_10.webp"
-    },
-    {
-      "id": 11,
-      "nombre": "Carne Lomito",
-      "categorias": [
-        "Lomitos"
-      ],
-      "precio_extra": 600.0,
-      "precio_resta": 600.0,
-      "imagen": "ingredientes/ingrediente_11.jpg"
-    },
-    {
-      "id": 12,
-      "nombre": "(Una/s Empanadas/s del precio x12)",
-      "categorias": [
-        "Empanadas"
-      ],
-      "precio_extra": 1400.0,
-      "precio_resta": 1400.0
-    },
-    {
       "id": 13,
       "nombre": "Cheddar Extra",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas",
+        "Bondiolas",
+        "Matambre",
         "Fritas"
       ],
       "precio_extra": 3000.0,
-      "precio_resta": 0.0
-    },
-    {
-      "id": 14,
-      "nombre": "J Y Q",
-      "categorias": [
-        "Empanadas"
-      ],
-      "precio_extra": 0.0,
-      "precio_resta": 0.0
-    },
-    {
-      "id": 15,
-      "nombre": "Carne",
-      "categorias": [
-        "Empanadas"
-      ],
-      "precio_extra": 0.0,
       "precio_resta": 0.0
     },
     {
@@ -154,8 +107,8 @@
       "nombre": "Huevo para Hamb y Lomito SIMPLE",
       "categorias": [
         "Hamburguesas",
-        "Lomitos",
-        "Milanesas"
+        "Bondiolas",
+        "Matambre"
       ],
       "precio_extra": 500.0,
       "precio_resta": 200.0
@@ -164,7 +117,8 @@
       "id": 17,
       "nombre": "mayonesa",
       "categorias": [
-        "Fritas"
+        "Fritas",
+        "Chacarera"
       ],
       "precio_extra": 0.0,
       "precio_resta": 0.0,
