@@ -11,9 +11,10 @@ import sys
 # Agregar el directorio raíz al path para importar módulos
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from utils.productos import (
-    cargar_productos, CATEGORIAS_FIJAS,
     agregar_producto, modificar_producto, eliminar_producto,
-    obtener_todos_los_productos
+    obtener_todos_los_productos,
+    obtener_nombres_categorias, listar_categorias,
+    agregar_categoria, renombrar_categoria, eliminar_categoria,
 )
 from utils.ingredientes import (
     cargar_ingredientes,
@@ -100,6 +101,11 @@ class VentanaAdministracion:
         self.notebook = ttk.Notebook(frame_principal)
         self.notebook.pack(fill='both', expand=True)
         
+        # Pestaña de Categorías (primera)
+        frame_categorias = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(frame_categorias, text="📁 Categorías")
+        self.crear_pestaña_categorias(frame_categorias)
+        
         # Pestaña de Productos
         frame_productos = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(frame_productos, text="📦 Productos")
@@ -140,6 +146,240 @@ class VentanaAdministracion:
         y = 50  # Posición fija cerca de la parte superior
         self.ventana.geometry(f"+{x}+{y}")
     
+    def crear_pestaña_categorias(self, parent):
+        """Crea la pestaña de ABM de categorías"""
+        parent.columnconfigure(0, weight=2)
+        parent.columnconfigure(1, weight=1)
+        parent.rowconfigure(1, weight=1)
+
+        ttk.Label(
+            parent,
+            text="Al eliminar una categoría se borran sus productos. Los ingredientes no se eliminan.",
+            wraplength=900
+        ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 8))
+
+        frame_lista = ttk.LabelFrame(parent, text="Lista de Categorías", padding=10)
+        frame_lista.grid(row=1, column=0, sticky='nsew', padx=5, pady=5)
+        frame_lista.columnconfigure(0, weight=1)
+        frame_lista.rowconfigure(0, weight=1)
+
+        frame_tree = ttk.Frame(frame_lista)
+        frame_tree.grid(row=0, column=0, sticky='nsew')
+        frame_tree.columnconfigure(0, weight=1)
+        frame_tree.rowconfigure(0, weight=1)
+
+        scrollbar = ttk.Scrollbar(frame_tree)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+
+        self.tree_categorias = ttk.Treeview(
+            frame_tree,
+            columns=('Nombre', 'Productos'),
+            show='headings',
+            yscrollcommand=scrollbar.set,
+            selectmode='browse'
+        )
+        scrollbar.config(command=self.tree_categorias.yview)
+        self.tree_categorias.heading('Nombre', text='Nombre')
+        self.tree_categorias.heading('Productos', text='Productos')
+        self.tree_categorias.column('Nombre', width=260)
+        self.tree_categorias.column('Productos', width=90, anchor='center')
+        self.tree_categorias.grid(row=0, column=0, sticky='nsew')
+        self.tree_categorias.bind('<<TreeviewSelect>>', self.on_seleccionar_categoria)
+
+        frame_form = ttk.LabelFrame(parent, text="Categoría", padding=10)
+        frame_form.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        frame_form.columnconfigure(1, weight=1)
+
+        ttk.Label(frame_form, text="Nombre:").grid(row=0, column=0, sticky='w', pady=5, padx=5)
+        self.entry_nombre_categoria = ttk.Entry(frame_form, width=30)
+        self.entry_nombre_categoria.grid(row=0, column=1, sticky='ew', pady=5, padx=5)
+
+        frame_botones = ttk.Frame(frame_form)
+        frame_botones.grid(row=1, column=0, columnspan=2, pady=20)
+
+        self.btn_guardar_cat = ttk.Button(
+            frame_botones, text="💾 Guardar", command=self.guardar_categoria, width=15
+        )
+        self.btn_guardar_cat.pack(side='left', padx=5)
+
+        self.btn_modificar_cat = ttk.Button(
+            frame_botones, text="✏️ Modificar", command=self.modificar_categoria_actual,
+            width=15, state='disabled'
+        )
+        self.btn_modificar_cat.pack(side='left', padx=5)
+
+        self.btn_eliminar_cat = ttk.Button(
+            frame_botones, text="❌ Eliminar", command=self.eliminar_categoria_actual,
+            width=15, state='disabled'
+        )
+        self.btn_eliminar_cat.pack(side='left', padx=5)
+
+        ttk.Button(
+            frame_botones, text="🔄 Limpiar", command=self.limpiar_formulario_categoria, width=15
+        ).pack(side='left', padx=5)
+
+        self.categoria_seleccionada = None
+        self.cargar_lista_categorias()
+
+    def cargar_lista_categorias(self):
+        """Carga las categorías administrables en el treeview"""
+        for item in self.tree_categorias.get_children():
+            self.tree_categorias.delete(item)
+
+        for categoria in listar_categorias():
+            self.tree_categorias.insert(
+                '',
+                'end',
+                values=(categoria['nombre'], categoria['cantidad_productos'])
+            )
+
+    def on_seleccionar_categoria(self, event):
+        """Carga la categoría seleccionada en el formulario"""
+        seleccion = self.tree_categorias.selection()
+        if not seleccion:
+            return
+
+        item = self.tree_categorias.item(seleccion[0])
+        nombre = item['values'][0]
+        self.categoria_seleccionada = nombre
+        self.entry_nombre_categoria.delete(0, 'end')
+        self.entry_nombre_categoria.insert(0, nombre)
+        self.btn_modificar_cat.config(state='normal')
+        self.btn_eliminar_cat.config(state='normal')
+        self.btn_guardar_cat.config(state='disabled')
+
+    def limpiar_formulario_categoria(self):
+        """Limpia el formulario de categoría"""
+        self.entry_nombre_categoria.delete(0, 'end')
+        self.categoria_seleccionada = None
+        if self.tree_categorias.selection():
+            self.tree_categorias.selection_remove(self.tree_categorias.selection())
+        self.btn_guardar_cat.config(state='normal')
+        self.btn_modificar_cat.config(state='disabled')
+        self.btn_eliminar_cat.config(state='disabled')
+
+    def guardar_categoria(self):
+        """Crea una categoría nueva"""
+        nombre = self.entry_nombre_categoria.get().strip()
+        try:
+            agregar_categoria(nombre)
+            messagebox.showinfo("Éxito", "Categoría agregada correctamente")
+            self.refrescar_categorias_en_ui()
+            self.limpiar_formulario_categoria()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al agregar categoría: {str(e)}")
+
+    def modificar_categoria_actual(self):
+        """Renombra la categoría seleccionada y actualiza productos e ingredientes"""
+        if not self.categoria_seleccionada:
+            messagebox.showerror("Error", "Debe seleccionar una categoría")
+            return
+
+        nombre_nuevo = self.entry_nombre_categoria.get().strip()
+        try:
+            renombrar_categoria(self.categoria_seleccionada, nombre_nuevo)
+            messagebox.showinfo("Éxito", "Categoría modificada correctamente")
+            self.refrescar_categorias_en_ui()
+            self.limpiar_formulario_categoria()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al modificar categoría: {str(e)}")
+
+    def eliminar_categoria_actual(self):
+        """Elimina la categoría, sus productos y la relación con ingredientes"""
+        if not self.categoria_seleccionada:
+            messagebox.showerror("Error", "Debe seleccionar una categoría")
+            return
+
+        cantidad = 0
+        for categoria in listar_categorias():
+            if categoria['nombre'] == self.categoria_seleccionada:
+                cantidad = categoria['cantidad_productos']
+                break
+
+        aviso = (
+            f"¿Eliminar la categoría '{self.categoria_seleccionada}'?\n\n"
+            f"Se van a borrar {cantidad} producto(s).\n"
+            "Los ingredientes no se eliminan; solo se les saca esta categoría."
+        )
+        if not messagebox.askyesno("Confirmar Eliminación", aviso):
+            return
+
+        try:
+            eliminar_categoria(self.categoria_seleccionada)
+            messagebox.showinfo("Éxito", "Categoría eliminada correctamente")
+            self.refrescar_categorias_en_ui()
+            self.limpiar_formulario_categoria()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al eliminar categoría: {str(e)}")
+
+    def reconstruir_checkboxes_categorias_ing(self):
+        """Arma los checkboxes de categorías del formulario de ingredientes"""
+        if not hasattr(self, 'frame_categorias_ing'):
+            return
+
+        seleccionadas = []
+        if hasattr(self, 'vars_categorias_ing'):
+            seleccionadas = [cat for cat, var in self.vars_categorias_ing.items() if var.get()]
+
+        for widget in self.frame_categorias_ing.winfo_children():
+            widget.destroy()
+
+        self.vars_categorias_ing = {}
+        nombres = obtener_nombres_categorias()
+        if not nombres:
+            ttk.Label(
+                self.frame_categorias_ing,
+                text="Creá una categoría primero"
+            ).grid(row=0, column=0, sticky='w', padx=5, pady=2)
+            return
+
+        for idx, categoria in enumerate(nombres):
+            var = tk.BooleanVar(value=categoria in seleccionadas)
+            self.vars_categorias_ing[categoria] = var
+            ttk.Checkbutton(
+                self.frame_categorias_ing,
+                text=categoria,
+                variable=var
+            ).grid(row=idx // 2, column=idx % 2, sticky='w', padx=5, pady=2)
+
+    def refrescar_categorias_en_ui(self):
+        """Actualiza listas y combos que dependen de las categorías"""
+        nombres = obtener_nombres_categorias()
+
+        if hasattr(self, 'tree_categorias'):
+            self.cargar_lista_categorias()
+
+        if hasattr(self, 'combo_filtro'):
+            filtro_actual = self.var_filtro_categoria.get()
+            self.combo_filtro['values'] = ["Todas"] + nombres
+            if filtro_actual not in (["Todas"] + nombres):
+                self.var_filtro_categoria.set("Todas")
+
+        if hasattr(self, 'combo_categoria'):
+            categoria_actual = self.var_categoria.get()
+            self.combo_categoria['values'] = nombres
+            if categoria_actual and categoria_actual not in nombres:
+                self.var_categoria.set('')
+
+        self.reconstruir_checkboxes_categorias_ing()
+
+        if hasattr(self, 'tree'):
+            self.cargar_lista_productos()
+        if hasattr(self, 'tree_ingredientes'):
+            self.cargar_lista_ingredientes()
+        if hasattr(self, 'tree_ingredientes_producto'):
+            for item in self.tree_ingredientes_producto.get_children():
+                self.tree_ingredientes_producto.delete(item)
+
+        if self.callback_actualizar:
+            self.callback_actualizar()
+
     def crear_pestaña_productos(self, parent):
         """Crea la pestaña de productos"""
         # Configurar grid
@@ -169,15 +409,15 @@ class VentanaAdministracion:
         ttk.Label(frame_filtros, text="Categoría:").grid(row=0, column=0, padx=5)
         
         self.var_filtro_categoria = tk.StringVar(value="Todas")
-        combo_filtro = ttk.Combobox(
+        self.combo_filtro = ttk.Combobox(
             frame_filtros,
             textvariable=self.var_filtro_categoria,
-            values=["Todas"] + CATEGORIAS_FIJAS,
+            values=["Todas"] + obtener_nombres_categorias(),
             state='readonly',
             width=15
         )
-        combo_filtro.grid(row=0, column=1, padx=5, sticky='w')
-        combo_filtro.bind('<<ComboboxSelected>>', lambda e: self.cargar_lista_productos())
+        self.combo_filtro.grid(row=0, column=1, padx=5, sticky='w')
+        self.combo_filtro.bind('<<ComboboxSelected>>', lambda e: self.cargar_lista_productos())
         
         # Buscador
         ttk.Label(frame_filtros, text="🔍 Buscar:").grid(row=0, column=2, padx=(10, 5))
@@ -306,14 +546,14 @@ class VentanaAdministracion:
         # Categoría
         ttk.Label(frame_contenido, text="Categoría:").grid(row=0, column=0, sticky='w', pady=5, padx=5)
         self.var_categoria = tk.StringVar()
-        combo_categoria = ttk.Combobox(
+        self.combo_categoria = ttk.Combobox(
             frame_contenido,
             textvariable=self.var_categoria,
-            values=CATEGORIAS_FIJAS,
+            values=obtener_nombres_categorias(),
             state='readonly',
             width=20
         )
-        combo_categoria.grid(row=0, column=1, sticky='ew', pady=5, padx=5)
+        self.combo_categoria.grid(row=0, column=1, sticky='ew', pady=5, padx=5)
         
         # Nombre
         ttk.Label(frame_contenido, text="Nombre:").grid(row=1, column=0, sticky='w', pady=5, padx=5)
@@ -471,7 +711,7 @@ class VentanaAdministracion:
         btn_eliminar_ing.grid(row=2, column=0, pady=5)
         
         # Actualizar combo cuando cambia la categoría
-        combo_categoria.bind('<<ComboboxSelected>>', self.on_categoria_changed)
+        self.combo_categoria.bind('<<ComboboxSelected>>', self.on_categoria_changed)
     
     def cargar_lista_productos(self):
         """Carga la lista de productos en el treeview"""
@@ -576,7 +816,10 @@ class VentanaAdministracion:
     def validar_formulario(self):
         """Valida que el formulario esté completo"""
         if not self.var_categoria.get():
-            messagebox.showerror("Error", "Debe seleccionar una categoría")
+            if not obtener_nombres_categorias():
+                messagebox.showerror("Error", "Primero creá una categoría en la pestaña Categorías")
+            else:
+                messagebox.showerror("Error", "Debe seleccionar una categoría")
             return False
         
         if not self.entry_nombre.get().strip():
@@ -820,19 +1063,9 @@ class VentanaAdministracion:
         
         # Categorías (checkboxes)
         ttk.Label(frame_contenido_ing, text="Categorías:").grid(row=1, column=0, sticky='nw', pady=5, padx=5)
-        frame_categorias_ing = ttk.Frame(frame_contenido_ing)
-        frame_categorias_ing.grid(row=1, column=1, sticky='ew', pady=5, padx=5)
-        
-        self.vars_categorias_ing = {}
-        for idx, categoria in enumerate(CATEGORIAS_FIJAS):
-            var = tk.BooleanVar()
-            self.vars_categorias_ing[categoria] = var
-            checkbox = ttk.Checkbutton(
-                frame_categorias_ing,
-                text=categoria,
-                variable=var
-            )
-            checkbox.grid(row=idx // 2, column=idx % 2, sticky='w', padx=5, pady=2)
+        self.frame_categorias_ing = ttk.Frame(frame_contenido_ing)
+        self.frame_categorias_ing.grid(row=1, column=1, sticky='ew', pady=5, padx=5)
+        self.reconstruir_checkboxes_categorias_ing()
         
         # Precio Extra
         ttk.Label(frame_contenido_ing, text="Precio Extra:").grid(row=2, column=0, sticky='w', pady=5, padx=5)
@@ -1020,7 +1253,10 @@ class VentanaAdministracion:
         # Verificar que al menos una categoría esté seleccionada
         categorias_seleccionadas = [cat for cat, var in self.vars_categorias_ing.items() if var.get()]
         if not categorias_seleccionadas:
-            messagebox.showerror("Error", "Debe seleccionar al menos una categoría")
+            if not obtener_nombres_categorias():
+                messagebox.showerror("Error", "Primero creá una categoría en la pestaña Categorías")
+            else:
+                messagebox.showerror("Error", "Debe seleccionar al menos una categoría")
             return False
         
         try:

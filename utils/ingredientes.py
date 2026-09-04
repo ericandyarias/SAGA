@@ -200,6 +200,45 @@ def eliminar_ingrediente(ingrediente_id):
     return True
 
 
+def renombrar_categoria_en_ingredientes(nombre_anterior, nombre_nuevo):
+    """Actualiza el nombre de una categoría en todos los ingredientes."""
+    data = cargar_ingredientes()
+    modificado = False
+
+    for ingrediente in data.get("ingredientes", []):
+        categorias = ingrediente.get("categorias", [])
+        if nombre_anterior not in categorias:
+            continue
+        ingrediente["categorias"] = [
+            nombre_nuevo if categoria == nombre_anterior else categoria
+            for categoria in categorias
+        ]
+        modificado = True
+
+    if modificado:
+        guardar_ingredientes(data)
+    return modificado
+
+
+def quitar_categoria_de_ingredientes(nombre_categoria):
+    """Saca una categoría de los ingredientes. No elimina el ingrediente."""
+    data = cargar_ingredientes()
+    modificado = False
+
+    for ingrediente in data.get("ingredientes", []):
+        categorias = ingrediente.get("categorias", [])
+        if nombre_categoria not in categorias:
+            continue
+        ingrediente["categorias"] = [
+            categoria for categoria in categorias if categoria != nombre_categoria
+        ]
+        modificado = True
+
+    if modificado:
+        guardar_ingredientes(data)
+    return modificado
+
+
 def obtener_ingredientes_por_categoria(categoria_nombre):
     """Obtiene todos los ingredientes disponibles para una categoría"""
     data = cargar_ingredientes()

@@ -1,3 +1,22 @@
 {
-  "pedidos": []
+  "pedidos": [
+    {
+      "id": "a3bc6dcc-c612-4e67-bf94-9bb0c0237db0",
+      "fecha_hora": "2026-09-02T19:25:15",
+      "numero": 1,
+      "nombre_cliente": "",
+      "tipo": "Servicio en mesa",
+      "forma_pago": "Desconocido",
+      "total": 8000.0,
+      "cuenta_en_resumen": true,
+      "items": [
+        {
+          "nombre": "Hamburguesa Completa S/Papas",
+          "cantidad": 1,
+          "precio_unitario": 8000.0,
+          "subtotal": 8000.0
+        }
+      ]
+    }
+  ]
 }

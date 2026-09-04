@@ -10,7 +10,7 @@ import threading
 
 # Agregar el directorio raíz al path para importar módulos
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from utils.productos import cargar_productos, CATEGORIAS_FIJAS
+from utils.productos import cargar_productos, es_categoria_especial
 from utils.imagenes import cargar_imagen_tkinter
 from utils.scroll_rueda import habilitar_scroll_rueda, actualizar_region_scroll
 
@@ -35,10 +35,14 @@ class Seleccion(ttk.Frame):
         self.productos_data = self.cargar_productos()
         self.cargar_categorias()
         # Si hay una categoría actual, recargarla
-        if self.categoria_actual:
+        nombres = [
+            cat["nombre"] for cat in self.categorias_visibles()
+            if not es_categoria_especial(cat.get("nombre", ""))
+        ]
+        if self.categoria_actual and self.categoria_actual in nombres:
             self.mostrar_productos(self.categoria_actual)
-        elif self.productos_data.get("categorias"):
-            self.mostrar_productos(self.productos_data["categorias"][0]["nombre"])
+        elif nombres:
+            self.mostrar_productos(nombres[0])
     
     def cargar_productos(self):
         """Carga los productos desde el archivo JSON usando el módulo de productos"""
@@ -110,28 +114,24 @@ class Seleccion(ttk.Frame):
         frame_productos.columnconfigure(0, weight=1)
         frame_productos.rowconfigure(0, weight=1)
         
-        # Cargar productos de la primera categoría por defecto
-        if self.productos_data.get("categorias"):
-            self.mostrar_productos(self.productos_data["categorias"][0]["nombre"])
+        # Cargar productos de la primera categoría de catálogo
+        for categoria in self.categorias_visibles():
+            if not es_categoria_especial(categoria.get("nombre", "")):
+                self.mostrar_productos(categoria["nombre"])
+                break
     
     def categorias_visibles(self):
-        """Categorías en el orden de los botones. Personalizados siempre último."""
+        """Categorías en el orden guardado. Personalizados siempre último."""
         categorias = self.productos_data.get("categorias", [])
         if not categorias:
             return []
 
-        por_nombre = {cat.get("nombre"): cat for cat in categorias}
         visibles = []
-        for nombre in CATEGORIAS_FIJAS:
-            if nombre in por_nombre:
-                visibles.append(por_nombre[nombre])
-
         personalizados = None
         for cat in categorias:
-            nombre = cat.get("nombre", "")
-            if nombre.lower() == "personalizados":
+            if es_categoria_especial(cat.get("nombre", "")):
                 personalizados = cat
-            elif nombre not in CATEGORIAS_FIJAS:
+            else:
                 visibles.append(cat)
 
         if personalizados is not None:
@@ -162,7 +162,7 @@ class Seleccion(ttk.Frame):
         if indice < 0 or indice >= len(categorias):
             return
         categoria = categorias[indice]
-        if categoria["nombre"].lower() == "personalizados":
+        if es_categoria_especial(categoria["nombre"]):
             self.mostrar_ventana_producto_personalizado()
         else:
             self.mostrar_productos(categoria["nombre"], enfocar_primero=True)
@@ -231,8 +231,7 @@ class Seleccion(ttk.Frame):
             columna = idx % num_columnas
             
             texto = f"{categoria['nombre']} - ({idx + 1})"
-            # Comportamiento especial para "Otros"
-            if categoria["nombre"].lower() == "personalizados":
+            if es_categoria_especial(categoria["nombre"]):
                 btn = ttk.Button(
                     self.frame_categorias_btns,
                     text=texto,
