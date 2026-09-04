@@ -349,7 +349,7 @@ def main():
         splash.splash.update()
         time.sleep(0.2)
         
-        # Asegurar que las categorías fijas existan al iniciar
+        # Cargar catálogo (categorías dinámicas + Personalizados)
         cargar_productos()
         
         splash.actualizar_progreso(35, "Cargando ingredientes...")

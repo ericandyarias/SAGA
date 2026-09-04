@@ -1,22 +1,21 @@
 """
-Módulo para gestión de productos en el archivo JSON
-Maneja operaciones CRUD y asegura que las categorías fijas existan
+Módulo para gestión de productos y categorías en el archivo JSON
 """
 import json
 import os
 
 
-# Categorías fijas del sistema
-CATEGORIAS_FIJAS = [
-    "Hamburguesas",
-    "Bondiolas",
-    "Matambre",
-    "Fritas",
-    "Chacarera",
-    "Bebidas",
-    "Panchos",
-    "Pizza/Choripan",
-]
+CATEGORIA_PERSONALIZADOS = "Personalizados"
+NOMBRES_CATEGORIA_RESERVADOS = {"todas", CATEGORIA_PERSONALIZADOS.lower()}
+
+
+def es_categoria_especial(nombre):
+    """Personalizados es una categoría de sistema, no se administra."""
+    return (nombre or "").strip().lower() == CATEGORIA_PERSONALIZADOS.lower()
+
+
+def normalizar_nombre_categoria(nombre):
+    return (nombre or "").strip()
 
 
 def obtener_ruta_json():
@@ -35,20 +34,18 @@ def cargar_productos():
     try:
         with open(ruta, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # Asegurar que todas las categorías fijas existan
-            asegurar_categorias_fijas(data)
+        if asegurar_categoria_personalizados(data):
             guardar_productos(data)
-            return data
+        return data
     except FileNotFoundError:
-        # Crear estructura inicial con categorías fijas
         data = {"categorias": []}
-        asegurar_categorias_fijas(data)
+        asegurar_categoria_personalizados(data)
         guardar_productos(data)
         return data
     except json.JSONDecodeError:
         print("Error: El archivo productos.json no es válido. Se creará uno nuevo.")
         data = {"categorias": []}
-        asegurar_categorias_fijas(data)
+        asegurar_categoria_personalizados(data)
         guardar_productos(data)
         return data
 
@@ -65,16 +62,163 @@ def guardar_productos(data):
         os.fsync(f.fileno())  # Forzar escritura al disco
 
 
-def asegurar_categorias_fijas(data):
-    """Asegura que todas las categorías fijas existan en los datos"""
-    categorias_existentes = {cat["nombre"] for cat in data.get("categorias", [])}
-    
-    for categoria_nombre in CATEGORIAS_FIJAS:
-        if categoria_nombre not in categorias_existentes:
-            data.setdefault("categorias", []).append({
-                "nombre": categoria_nombre,
-                "productos": []
-            })
+def asegurar_categoria_personalizados(data):
+    """Deja Personalizados al final. Devuelve True si hubo que crearla."""
+    categorias = data.setdefault("categorias", [])
+    especial = None
+    resto = []
+    for cat in categorias:
+        if es_categoria_especial(cat.get("nombre", "")):
+            if especial is None:
+                cat["nombre"] = CATEGORIA_PERSONALIZADOS
+                especial = cat
+        else:
+            resto.append(cat)
+
+    if especial is None:
+        especial = {"nombre": CATEGORIA_PERSONALIZADOS, "productos": []}
+        data["categorias"] = resto + [especial]
+        return True
+
+    data["categorias"] = resto + [especial]
+    return False
+
+
+def _buscar_categoria(data, nombre):
+    for categoria in data.get("categorias", []):
+        if categoria.get("nombre") == nombre:
+            return categoria
+    return None
+
+
+def _nombre_categoria_existe(nombre, excluir=None, data=None):
+    objetivo = normalizar_nombre_categoria(nombre).casefold()
+    if data is None:
+        data = cargar_productos()
+    excluir_norm = normalizar_nombre_categoria(excluir).casefold() if excluir else None
+    for categoria in data.get("categorias", []):
+        actual = normalizar_nombre_categoria(categoria.get("nombre", "")).casefold()
+        if excluir_norm and actual == excluir_norm:
+            continue
+        if actual == objetivo:
+            return True
+    return False
+
+
+def _validar_nombre_categoria(nombre, excluir=None, data=None):
+    nombre = normalizar_nombre_categoria(nombre)
+    if not nombre:
+        raise ValueError("Debe ingresar un nombre de categoría")
+    if nombre.casefold() in NOMBRES_CATEGORIA_RESERVADOS:
+        raise ValueError(f"El nombre '{nombre}' está reservado")
+    if _nombre_categoria_existe(nombre, excluir=excluir, data=data):
+        raise ValueError("Ya existe una categoría con ese nombre")
+    return nombre
+
+
+def _insertar_categoria_catalogo(data, categoria):
+    categorias = data.setdefault("categorias", [])
+    for idx, cat in enumerate(categorias):
+        if es_categoria_especial(cat.get("nombre", "")):
+            categorias.insert(idx, categoria)
+            return
+    categorias.append(categoria)
+
+
+def obtener_nombres_categorias(incluir_especiales=False, data=None):
+    """Nombres de categorías de catálogo, en el orden guardado."""
+    if data is None:
+        data = cargar_productos()
+    nombres = []
+    for categoria in data.get("categorias", []):
+        nombre = categoria.get("nombre", "")
+        if not nombre:
+            continue
+        if not incluir_especiales and es_categoria_especial(nombre):
+            continue
+        nombres.append(nombre)
+    return nombres
+
+
+def listar_categorias():
+    """Categorías administrables con cantidad de productos."""
+    data = cargar_productos()
+    resultado = []
+    for categoria in data.get("categorias", []):
+        nombre = categoria.get("nombre", "")
+        if not nombre or es_categoria_especial(nombre):
+            continue
+        resultado.append({
+            "nombre": nombre,
+            "cantidad_productos": len(categoria.get("productos", [])),
+        })
+    return resultado
+
+
+def agregar_categoria(nombre):
+    """Crea una categoría vacía. No toca ingredientes."""
+    data = cargar_productos()
+    nombre = _validar_nombre_categoria(nombre, data=data)
+    nueva = {"nombre": nombre, "productos": []}
+    _insertar_categoria_catalogo(data, nueva)
+    guardar_productos(data)
+    return nueva
+
+
+def renombrar_categoria(nombre_anterior, nombre_nuevo):
+    """Cambia el nombre y actualiza la relación en ingredientes."""
+    data = cargar_productos()
+    nombre_anterior = normalizar_nombre_categoria(nombre_anterior)
+    if not nombre_anterior or es_categoria_especial(nombre_anterior):
+        raise ValueError("No se puede modificar esa categoría")
+
+    categoria = _buscar_categoria(data, nombre_anterior)
+    if not categoria:
+        raise ValueError("No se encontró la categoría")
+
+    nombre_nuevo = _validar_nombre_categoria(nombre_nuevo, excluir=nombre_anterior, data=data)
+    if nombre_nuevo == nombre_anterior:
+        return True
+
+    categoria["nombre"] = nombre_nuevo
+    guardar_productos(data)
+
+    from utils.ingredientes import renombrar_categoria_en_ingredientes
+    renombrar_categoria_en_ingredientes(nombre_anterior, nombre_nuevo)
+    return True
+
+
+def eliminar_categoria(nombre):
+    """
+    Elimina la categoría y sus productos.
+    Saca la categoría de los ingredientes, pero no borra ingredientes.
+    """
+    data = cargar_productos()
+    nombre = normalizar_nombre_categoria(nombre)
+    if not nombre or es_categoria_especial(nombre):
+        raise ValueError("No se puede eliminar esa categoría")
+
+    for idx, categoria in enumerate(data.get("categorias", [])):
+        if categoria.get("nombre") != nombre:
+            continue
+
+        from utils.imagenes import eliminar_imagen
+        for producto in categoria.get("productos", []):
+            imagen = producto.get("imagen")
+            if imagen:
+                try:
+                    eliminar_imagen(imagen)
+                except Exception:
+                    pass
+
+        data["categorias"].pop(idx)
+        guardar_productos(data)
+
+        from utils.ingredientes import quitar_categoria_de_ingredientes
+        quitar_categoria_de_ingredientes(nombre)
+        return True
+
+    raise ValueError("No se encontró la categoría")
 
 
 def obtener_siguiente_id():
@@ -131,10 +275,8 @@ def agregar_producto(categoria_nombre, nombre, precio, descripcion, imagen=None)
             categoria = cat
             break
     
-    if not categoria:
-        # Si no existe, crearla (aunque debería existir por ser fija)
-        categoria = {"nombre": categoria_nombre, "productos": []}
-        data.setdefault("categorias", []).append(categoria)
+    if not categoria or es_categoria_especial(categoria_nombre):
+        raise ValueError("La categoría no existe")
     
     # Crear nuevo producto
     nuevo_producto = {
@@ -194,12 +336,9 @@ def modificar_producto(producto_id, categoria_nombre, nombre, precio, descripcio
                 nueva_categoria = cat
                 break
         
-        if nueva_categoria:
-            nueva_categoria.setdefault("productos", []).append(producto_encontrado)
-        else:
-            # Si no existe, crearla
-            nueva_categoria = {"nombre": categoria_nombre, "productos": [producto_encontrado]}
-            data.setdefault("categorias", []).append(nueva_categoria)
+        if not nueva_categoria or es_categoria_especial(categoria_nombre):
+            return False
+        nueva_categoria.setdefault("productos", []).append(producto_encontrado)
     else:
         # Si no cambió de categoría, volver a agregarlo
         categoria_original_obj = None
