@@ -36,6 +36,8 @@ def crear_backup(ruta_destino=None):
     """
     try:
         from utils.rutas import obtener_ruta_data
+        from utils.base_datos import checkpoint
+        checkpoint()
         ruta_origen = obtener_ruta_data()
 
         if not os.path.exists(ruta_origen):
@@ -68,6 +70,9 @@ def crear_backup(ruta_destino=None):
                 ignored.append('tickets')
             if '.app_lock' in filenames:
                 ignored.append('.app_lock')
+            for extra in ('saga.db-wal', 'saga.db-shm'):
+                if extra in filenames:
+                    ignored.append(extra)
             return ignored
 
         try:

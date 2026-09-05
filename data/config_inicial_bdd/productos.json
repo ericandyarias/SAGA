@@ -314,24 +314,6 @@
       ]
     },
     {
-      "nombre": "Chacarero",
-      "productos": [
-        {
-          "id": 43,
-          "nombre": "Sandwiche de Chacarero",
-          "precio": 12000.0,
-          "descripcion": "Sandwiches de prueba para papuccina",
-          "imagen": "productos/producto_43.jpg",
-          "ingredientes": [
-            {
-              "nombre": "mayonesa",
-              "cantidad_base": 1
-            }
-          ]
-        }
-      ]
-    },
-    {
       "nombre": "Bebidas",
       "productos": [
         {

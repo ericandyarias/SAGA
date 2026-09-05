@@ -17,6 +17,7 @@ def obtener_ruta_config():
     return os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
         'data',
+        'config_inicial_bdd',
         'config.json'
     )
 
@@ -41,7 +42,7 @@ def probar_impresora():
         
         if not nombre_impresora:
             print("[ERROR] No hay nombre de impresora configurado")
-            print("Configura 'nombre_impresora' en data/config.json")
+            print("Configura 'nombre_impresora' en data/config_inicial_bdd/config.json")
             return False
         
         print(f"Configuracion encontrada:")
@@ -85,7 +86,7 @@ def probar_impresora():
         if nombre_impresora not in impresoras:
             print()
             print(f"[ERROR] La impresora '{nombre_impresora}' no se encuentra en el sistema")
-            print("Actualiza 'nombre_impresora' en data/config.json con el nombre correcto")
+            print("Actualiza 'nombre_impresora' en data/config_inicial_bdd/config.json con el nombre correcto")
             return False
         
         print()

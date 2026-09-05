@@ -52,6 +52,7 @@ from utils.productos import cargar_productos, guardar_productos
 from utils.ingredientes import cargar_ingredientes, guardar_ingredientes
 from utils.backup import crear_backup
 from utils.rutas import migrar_datos_desde_instalacion
+from utils.base_datos import inicializar_base_datos
 
 
 class AplicacionCaja:
@@ -345,7 +346,11 @@ def main():
             pass  # No bloquear si falla la migración
         
         # Actualizar progreso
-        splash.actualizar_progreso(15, "Cargando productos...")
+        splash.actualizar_progreso(15, "Preparando base de datos...")
+        splash.splash.update()
+        inicializar_base_datos()
+
+        splash.actualizar_progreso(25, "Cargando productos...")
         splash.splash.update()
         time.sleep(0.2)
         

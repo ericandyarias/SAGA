@@ -1,252 +1,182 @@
 """
-Módulo para gestión de ingredientes en el archivo JSON
-Maneja operaciones CRUD de ingredientes y su asignación a categorías
+Gestión de ingredientes (SQLite).
 """
-import json
-import os
+from utils.base_datos import checkpoint, conexion, inicializar_base_datos
 
 
 def obtener_ruta_json():
-    """Obtiene la ruta del archivo JSON de ingredientes"""
     from utils.rutas import obtener_ruta_json as obtener_ruta_json_helper
-    return obtener_ruta_json_helper('ingredientes.json')
+    return obtener_ruta_json_helper("ingredientes.json")
+
+
+def _categorias_de(conn, ingrediente_id):
+    filas = conn.execute(
+        "SELECT nombre FROM ingrediente_categoria WHERE ingrediente_id=? ORDER BY nombre",
+        (ingrediente_id,),
+    ).fetchall()
+    return [f["nombre"] for f in filas]
+
+
+def _dict_ingrediente(conn, fila):
+    item = {
+        "id": fila["id"],
+        "nombre": fila["nombre"],
+        "categorias": _categorias_de(conn, fila["id"]),
+        "precio_extra": fila["precio_extra"],
+        "precio_resta": fila["precio_resta"],
+    }
+    if fila["imagen"]:
+        item["imagen"] = fila["imagen"]
+    return item
 
 
 def cargar_ingredientes():
-    """Carga los ingredientes desde el archivo JSON"""
-    ruta = obtener_ruta_json()
-    
-    # La migración desde instalación antigua se hace en obtener_ruta_json()
-    # Aquí solo cargamos el archivo (ya está en AppData o se migró automáticamente)
-    
-    try:
-        with open(ruta, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            return data
-    except FileNotFoundError:
-        # Crear estructura inicial
-        data = {"ingredientes": []}
-        guardar_ingredientes(data)
-        return data
-    except json.JSONDecodeError:
-        print("Error: El archivo ingredientes.json no es válido. Se creará uno nuevo.")
-        data = {"ingredientes": []}
-        guardar_ingredientes(data)
-        return data
+    inicializar_base_datos()
+    with conexion() as conn:
+        filas = conn.execute(
+            "SELECT id, nombre, precio_extra, precio_resta, imagen FROM ingrediente ORDER BY id"
+        ).fetchall()
+        return {"ingredientes": [_dict_ingrediente(conn, f) for f in filas]}
 
 
-def guardar_ingredientes(data):
-    """Guarda los ingredientes en el archivo JSON"""
-    ruta = obtener_ruta_json()
-    # Asegurar que el directorio existe
-    os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    # Escribir con flush explícito para asegurar que se guarde
-    with open(ruta, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.flush()
-        os.fsync(f.fileno())  # Forzar escritura al disco
+def guardar_ingredientes(data=None):
+    checkpoint()
 
 
 def obtener_siguiente_id():
-    """Obtiene el siguiente ID disponible para un nuevo ingrediente"""
-    data = cargar_ingredientes()
-    max_id = 0
-    
-    for ingrediente in data.get("ingredientes", []):
-        if ingrediente.get("id", 0) > max_id:
-            max_id = ingrediente.get("id", 0)
-    
+    with conexion() as conn:
+        max_id = conn.execute("SELECT COALESCE(MAX(id), 0) FROM ingrediente").fetchone()[0]
     return max_id + 1
 
 
 def obtener_todos_los_ingredientes():
-    """Obtiene todos los ingredientes"""
-    data = cargar_ingredientes()
-    return data.get("ingredientes", [])
+    return cargar_ingredientes().get("ingredientes", [])
 
 
 def buscar_ingrediente_por_id(ingrediente_id):
-    """Busca un ingrediente por su ID"""
-    data = cargar_ingredientes()
-    
-    for ingrediente in data.get("ingredientes", []):
-        if ingrediente.get("id") == ingrediente_id:
-            return ingrediente
-    
-    return None
+    inicializar_base_datos()
+    with conexion() as conn:
+        fila = conn.execute(
+            "SELECT id, nombre, precio_extra, precio_resta, imagen FROM ingrediente WHERE id=?",
+            (ingrediente_id,),
+        ).fetchone()
+        if not fila:
+            return None
+        return _dict_ingrediente(conn, fila)
 
 
 def buscar_ingrediente_por_nombre(nombre):
-    """Busca un ingrediente por su nombre"""
-    data = cargar_ingredientes()
-    
-    for ingrediente in data.get("ingredientes", []):
-        if ingrediente.get("nombre") == nombre:
-            return ingrediente
-    
-    return None
+    inicializar_base_datos()
+    with conexion() as conn:
+        fila = conn.execute(
+            "SELECT id, nombre, precio_extra, precio_resta, imagen FROM ingrediente WHERE nombre=?",
+            (nombre,),
+        ).fetchone()
+        if not fila:
+            return None
+        return _dict_ingrediente(conn, fila)
+
+
+def _set_categorias(conn, ingrediente_id, categorias):
+    conn.execute(
+        "DELETE FROM ingrediente_categoria WHERE ingrediente_id=?",
+        (ingrediente_id,),
+    )
+    lista = categorias if isinstance(categorias, list) else [categorias]
+    for nombre in lista:
+        nombre = (nombre or "").strip()
+        if not nombre:
+            continue
+        conn.execute(
+            "INSERT OR IGNORE INTO ingrediente_categoria(ingrediente_id, nombre) VALUES(?, ?)",
+            (ingrediente_id, nombre),
+        )
 
 
 def agregar_ingrediente(nombre, categorias, precio_extra, precio_resta, imagen=None):
-    """Agrega un nuevo ingrediente"""
-    data = cargar_ingredientes()
-    
-    nuevo_ingrediente = {
-        "id": obtener_siguiente_id(),
+    with conexion() as conn:
+        nuevo_id = conn.execute("SELECT COALESCE(MAX(id), 0)+1 FROM ingrediente").fetchone()[0]
+        conn.execute(
+            """
+            INSERT INTO ingrediente(id, nombre, precio_extra, precio_resta, imagen)
+            VALUES(?, ?, ?, ?, ?)
+            """,
+            (nuevo_id, nombre, float(precio_extra), float(precio_resta), imagen or None),
+        )
+        _set_categorias(conn, nuevo_id, categorias)
+    nuevo = {
+        "id": nuevo_id,
         "nombre": nombre,
         "categorias": categorias if isinstance(categorias, list) else [categorias],
         "precio_extra": float(precio_extra),
-        "precio_resta": float(precio_resta)
+        "precio_resta": float(precio_resta),
     }
-    
-    # Agregar imagen si se proporciona
     if imagen:
-        nuevo_ingrediente["imagen"] = imagen
-    
-    data.setdefault("ingredientes", []).append(nuevo_ingrediente)
-    guardar_ingredientes(data)
-    return nuevo_ingrediente
+        nuevo["imagen"] = imagen
+    return nuevo
 
 
 def modificar_ingrediente(ingrediente_id, nombre, categorias, precio_extra, precio_resta, imagen=None):
-    """Modifica un ingrediente existente y actualiza el nombre en todos los productos que lo usan"""
-    data = cargar_ingredientes()
-    
-    # Buscar el ingrediente para obtener el nombre anterior
-    ingrediente_anterior = None
-    nombre_anterior = None
-    for ingrediente in data.get("ingredientes", []):
-        if ingrediente.get("id") == ingrediente_id:
-            ingrediente_anterior = ingrediente
-            nombre_anterior = ingrediente.get("nombre", "")
-            ingrediente["nombre"] = nombre
-            ingrediente["categorias"] = categorias if isinstance(categorias, list) else [categorias]
-            ingrediente["precio_extra"] = float(precio_extra)
-            ingrediente["precio_resta"] = float(precio_resta)
-            
-            # Actualizar imagen si se proporciona (None significa no cambiar, "" significa eliminar)
-            if imagen is not None:
-                if imagen:
-                    ingrediente["imagen"] = imagen
-                else:
-                    ingrediente.pop("imagen", None)
-            
-            guardar_ingredientes(data)
-            break
-    
-    if not ingrediente_anterior:
-        return False
-    
-    # Si el nombre cambió, actualizar el nombre en todos los productos que lo usan
-    if nombre_anterior and nombre_anterior != nombre:
-        from utils.productos import cargar_productos, guardar_productos
-        productos_data = cargar_productos()
-        productos_modificados = False
-        
-        for categoria in productos_data.get("categorias", []):
-            for producto in categoria.get("productos", []):
-                ingredientes = producto.get("ingredientes", [])
-                if ingredientes:
-                    for ing in ingredientes:
-                        if ing.get("nombre") == nombre_anterior:
-                            ing["nombre"] = nombre
-                            productos_modificados = True
-        
-        if productos_modificados:
-            guardar_productos(productos_data)
-    
+    with conexion() as conn:
+        fila = conn.execute(
+            "SELECT id, imagen FROM ingrediente WHERE id=?",
+            (ingrediente_id,),
+        ).fetchone()
+        if not fila:
+            return False
+        imagen_final = fila["imagen"]
+        if imagen is not None:
+            imagen_final = imagen or None
+        conn.execute(
+            """
+            UPDATE ingrediente
+            SET nombre=?, precio_extra=?, precio_resta=?, imagen=?
+            WHERE id=?
+            """,
+            (nombre, float(precio_extra), float(precio_resta), imagen_final, ingrediente_id),
+        )
+        _set_categorias(conn, ingrediente_id, categorias)
     return True
 
 
 def eliminar_ingrediente(ingrediente_id):
-    """Elimina un ingrediente por su ID y también lo elimina de todos los productos que lo usan"""
-    data = cargar_ingredientes()
-    
-    # Buscar el ingrediente para obtener su nombre
-    ingrediente_a_eliminar = None
-    for idx, ingrediente in enumerate(data.get("ingredientes", [])):
-        if ingrediente.get("id") == ingrediente_id:
-            ingrediente_a_eliminar = ingrediente
-            data["ingredientes"].pop(idx)
-            guardar_ingredientes(data)
-            break
-    
-    if not ingrediente_a_eliminar:
-        return False
-    
-    # Eliminar el ingrediente de todos los productos que lo usan
-    nombre_ingrediente = ingrediente_a_eliminar.get("nombre")
-    if nombre_ingrediente:
-        from utils.productos import cargar_productos, guardar_productos
-        productos_data = cargar_productos()
-        productos_modificados = False
-        
-        for categoria in productos_data.get("categorias", []):
-            for producto in categoria.get("productos", []):
-                ingredientes = producto.get("ingredientes", [])
-                if ingredientes:
-                    # Filtrar ingredientes que coincidan con el nombre
-                    ingredientes_originales = len(ingredientes)
-                    producto["ingredientes"] = [
-                        ing for ing in ingredientes 
-                        if ing.get("nombre") != nombre_ingrediente
-                    ]
-                    if len(producto["ingredientes"]) < ingredientes_originales:
-                        productos_modificados = True
-        
-        if productos_modificados:
-            guardar_productos(productos_data)
-    
+    with conexion() as conn:
+        fila = conn.execute("SELECT id FROM ingrediente WHERE id=?", (ingrediente_id,)).fetchone()
+        if not fila:
+            return False
+        conn.execute("DELETE FROM ingrediente WHERE id=?", (ingrediente_id,))
     return True
 
 
 def renombrar_categoria_en_ingredientes(nombre_anterior, nombre_nuevo):
-    """Actualiza el nombre de una categoría en todos los ingredientes."""
-    data = cargar_ingredientes()
-    modificado = False
-
-    for ingrediente in data.get("ingredientes", []):
-        categorias = ingrediente.get("categorias", [])
-        if nombre_anterior not in categorias:
-            continue
-        ingrediente["categorias"] = [
-            nombre_nuevo if categoria == nombre_anterior else categoria
-            for categoria in categorias
-        ]
-        modificado = True
-
-    if modificado:
-        guardar_ingredientes(data)
-    return modificado
+    with conexion() as conn:
+        conn.execute(
+            "UPDATE ingrediente_categoria SET nombre=? WHERE nombre=?",
+            (nombre_nuevo, nombre_anterior),
+        )
+    return True
 
 
 def quitar_categoria_de_ingredientes(nombre_categoria):
-    """Saca una categoría de los ingredientes. No elimina el ingrediente."""
-    data = cargar_ingredientes()
-    modificado = False
-
-    for ingrediente in data.get("ingredientes", []):
-        categorias = ingrediente.get("categorias", [])
-        if nombre_categoria not in categorias:
-            continue
-        ingrediente["categorias"] = [
-            categoria for categoria in categorias if categoria != nombre_categoria
-        ]
-        modificado = True
-
-    if modificado:
-        guardar_ingredientes(data)
-    return modificado
+    with conexion() as conn:
+        conn.execute(
+            "DELETE FROM ingrediente_categoria WHERE nombre=?",
+            (nombre_categoria,),
+        )
+    return True
 
 
 def obtener_ingredientes_por_categoria(categoria_nombre):
-    """Obtiene todos los ingredientes disponibles para una categoría"""
-    data = cargar_ingredientes()
-    ingredientes = []
-    
-    for ingrediente in data.get("ingredientes", []):
-        categorias = ingrediente.get("categorias", [])
-        if categoria_nombre in categorias:
-            ingredientes.append(ingrediente)
-    
-    return ingredientes
+    inicializar_base_datos()
+    with conexion() as conn:
+        filas = conn.execute(
+            """
+            SELECT DISTINCT i.id, i.nombre, i.precio_extra, i.precio_resta, i.imagen
+            FROM ingrediente i
+            JOIN ingrediente_categoria ic ON ic.ingrediente_id = i.id
+            WHERE ic.nombre=?
+            ORDER BY i.nombre
+            """,
+            (categoria_nombre,),
+        ).fetchall()
+        return [_dict_ingrediente(conn, f) for f in filas]

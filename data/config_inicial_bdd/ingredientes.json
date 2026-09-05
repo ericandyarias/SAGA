@@ -117,8 +117,7 @@
       "id": 17,
       "nombre": "mayonesa",
       "categorias": [
-        "Fritas",
-        "Chacarero"
+        "Fritas"
       ],
       "precio_extra": 0.0,
       "precio_resta": 0.0,

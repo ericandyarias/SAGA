@@ -62,6 +62,59 @@ def obtener_ruta_data():
         return os.path.join(obtener_ruta_base(), 'data')
 
 
+CARPETA_CONFIG_INICIAL = "config_inicial_bdd"
+ARCHIVOS_CONFIG_INICIAL = ("productos.json", "ingredientes.json", "config.json")
+
+
+def obtener_ruta_config_inicial():
+    """
+    Carpeta con el catálogo y la config de fábrica.
+    En desarrollo: data/config_inicial_bdd.
+    Instalado: data/config_inicial_bdd junto al .exe (solo lectura).
+    """
+    return os.path.join(obtener_ruta_data_instalacion(), CARPETA_CONFIG_INICIAL)
+
+
+def obtener_ruta_archivo_inicial(nombre_archivo):
+    """
+    Busca un JSON de arranque: primero la carpeta de fábrica, después
+    ubicaciones viejas (data/ suelto) por si hay una instalación anterior.
+    """
+    candidatos = [
+        os.path.join(obtener_ruta_config_inicial(), nombre_archivo),
+        os.path.join(obtener_ruta_data(), CARPETA_CONFIG_INICIAL, nombre_archivo),
+        os.path.join(obtener_ruta_data(), nombre_archivo),
+        os.path.join(obtener_ruta_data_instalacion(), nombre_archivo),
+    ]
+    for ruta in candidatos:
+        if os.path.exists(ruta):
+            return ruta
+    return candidatos[0]
+
+
+def asegurar_config_de_trabajo():
+    """
+    En el .exe, copia la config de fábrica a AppData la primera vez.
+    En desarrollo se usa directo data/config_inicial_bdd/config.json.
+    """
+    import shutil
+
+    if not getattr(sys, "frozen", False):
+        return os.path.join(obtener_ruta_config_inicial(), "config.json")
+
+    destino = os.path.join(obtener_ruta_data(), "config.json")
+    if os.path.exists(destino):
+        return destino
+    origen = obtener_ruta_archivo_inicial("config.json")
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    if os.path.exists(origen) and os.path.normcase(origen) != os.path.normcase(destino):
+        try:
+            shutil.copy2(origen, destino)
+        except Exception:
+            pass
+    return destino
+
+
 def obtener_ruta_data_instalacion():
     """
     Obtiene la ruta de la carpeta data en la instalación.
@@ -76,34 +129,27 @@ def obtener_ruta_data_instalacion():
 
 def obtener_ruta_json(nombre_archivo):
     """
-    Obtiene la ruta de un archivo JSON.
-    Cuando está instalado, los JSON se guardan SOLO en AppData.
-    En desarrollo, se guardan en la carpeta data del proyecto.
-    
-    Args:
-        nombre_archivo: Nombre del archivo JSON (ej: 'productos.json', 'ingredientes.json')
-    
-    Returns:
-        str: Ruta completa del archivo JSON
+    JSON de trabajo (config, ventas) o de fábrica (productos, ingredientes).
     """
+    if nombre_archivo in ("productos.json", "ingredientes.json"):
+        return obtener_ruta_archivo_inicial(nombre_archivo)
+    if nombre_archivo == "config.json":
+        return asegurar_config_de_trabajo()
+
     ruta_data = obtener_ruta_data()
     ruta_json = os.path.join(ruta_data, nombre_archivo)
-    
-    # Si está instalado y el archivo no existe en AppData, intentar migrar desde instalación antigua
-    if getattr(sys, 'frozen', False):
+
+    if getattr(sys, "frozen", False):
         ruta_instalacion = obtener_ruta_data_instalacion()
         ruta_json_instalacion = os.path.join(ruta_instalacion, nombre_archivo)
-        
-        # Solo migrar si existe en instalación y NO existe en AppData (migración única)
         if not os.path.exists(ruta_json) and os.path.exists(ruta_json_instalacion):
             import shutil
             try:
-                # Migrar datos antiguos desde Program Files a AppData (solo una vez)
                 os.makedirs(os.path.dirname(ruta_json), exist_ok=True)
                 shutil.copy2(ruta_json_instalacion, ruta_json)
             except Exception:
-                pass  # Si falla la migración, continuar de todas formas
-    
+                pass
+
     return ruta_json
 
 
@@ -126,16 +172,34 @@ def migrar_datos_desde_instalacion():
         
         import shutil
         
-        # Migrar archivos JSON
-        archivos_json = ['productos.json', 'ingredientes.json', 'config.json', 'ventas.json']
+        archivos_json = ["ventas.json", "saga.db"]
         for archivo in archivos_json:
             ruta_instalacion_archivo = os.path.join(ruta_instalacion, archivo)
             ruta_appdata_archivo = os.path.join(ruta_appdata, archivo)
-            
             if os.path.exists(ruta_instalacion_archivo) and not os.path.exists(ruta_appdata_archivo):
                 try:
                     os.makedirs(os.path.dirname(ruta_appdata_archivo), exist_ok=True)
                     shutil.copy2(ruta_instalacion_archivo, ruta_appdata_archivo)
+                except Exception:
+                    pass
+
+        # Config de fábrica (catálogo + config.json)
+        origen_inicial = os.path.join(ruta_instalacion, CARPETA_CONFIG_INICIAL)
+        destino_inicial = os.path.join(ruta_appdata, CARPETA_CONFIG_INICIAL)
+        if os.path.isdir(origen_inicial) and not os.path.exists(destino_inicial):
+            try:
+                shutil.copytree(origen_inicial, destino_inicial)
+            except Exception:
+                pass
+
+        for archivo in ARCHIVOS_CONFIG_INICIAL:
+            viejo = os.path.join(ruta_instalacion, archivo)
+            if os.path.exists(viejo):
+                try:
+                    os.makedirs(destino_inicial, exist_ok=True)
+                    destino_archivo = os.path.join(destino_inicial, archivo)
+                    if not os.path.exists(destino_archivo):
+                        shutil.copy2(viejo, destino_archivo)
                 except Exception:
                     pass
         
