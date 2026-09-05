@@ -9,6 +9,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(ROOT, "data")
+CONFIG_INICIAL = os.path.join(DATA, "config_inicial_bdd")
 sys.path.insert(0, ROOT)
 
 from utils.tickets import NOMBRE_SISTEMA_DEFAULT
@@ -30,14 +31,14 @@ def vaciar_tickets():
 
 
 def main():
-    os.makedirs(DATA, exist_ok=True)
+    os.makedirs(CONFIG_INICIAL, exist_ok=True)
 
     for obligatorio in ("productos.json", "ingredientes.json"):
-        ruta = os.path.join(DATA, obligatorio)
+        ruta = os.path.join(CONFIG_INICIAL, obligatorio)
         if not os.path.isfile(ruta):
-            raise SystemExit(f"Falta {obligatorio}. No se puede armar el instalador sin el catálogo.")
+            raise SystemExit(f"Falta config_inicial_bdd/{obligatorio}. No se puede armar el instalador sin el catálogo.")
 
-    escribir_json(os.path.join(DATA, "config.json"), {
+    escribir_json(os.path.join(CONFIG_INICIAL, "config.json"), {
         "impresora": {
             "ancho_ticket": 80,
             "modelo": "Térmica 80mm",
@@ -57,13 +58,18 @@ def main():
     with open(os.path.join(DATA, "orden_actual.txt"), "w", encoding="utf-8") as f:
         f.write("1")
 
+    for nombre_db in ("saga.db", "saga.db-wal", "saga.db-shm"):
+        ruta_db = os.path.join(DATA, nombre_db)
+        if os.path.isfile(ruta_db):
+            os.remove(ruta_db)
+
     vaciar_tickets()
     os.makedirs(os.path.join(DATA, "imagenes", "productos"), exist_ok=True)
     os.makedirs(os.path.join(DATA, "imagenes", "ingredientes"), exist_ok=True)
 
     print("Datos vírgenes listos para el instalador.")
     print("Se conservaron productos, ingredientes, precios e imágenes.")
-    print("Se resetearon config, ventas, tickets y número de orden.")
+    print("Se resetearon config, ventas, tickets, número de orden y saga.db.")
 
 
 if __name__ == "__main__":

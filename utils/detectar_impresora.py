@@ -16,6 +16,7 @@ def obtener_ruta_config():
     return os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
         'data',
+        'config_inicial_bdd',
         'config.json'
     )
 
