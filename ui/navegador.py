@@ -1,6 +1,6 @@
 """
-Módulo para la barra de navegación lateral izquierda
-Contiene los botones principales: Pedidos y Administración
+Propósito: menú lateral izquierdo de la caja.
+Botones de Pedidos, Administración y backup.
 """
 import tkinter as tk
 from tkinter import ttk

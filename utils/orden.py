@@ -1,5 +1,6 @@
 """
-Número de orden persistente (SQLite).
+Propósito: numerador de pedidos (el número que sale en el ticket).
+Se guarda en SQLite; orden_actual.txt solo sirve para migrar instalaciones viejas.
 """
 from utils.base_datos import conexion, inicializar_base_datos
 

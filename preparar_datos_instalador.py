@@ -1,7 +1,7 @@
 """
-Prepara datos vírgenes para el instalador.
-Conserva productos, ingredientes, precios e imágenes.
-Resetea config, ventas, tickets y número de orden.
+Propósito: dejar data/ virgen antes de armar el instalador.
+Conserva el catálogo de fábrica y las imágenes; resetea config, ventas, tickets y saga.db.
+Lo llama build_installer_completo.bat.
 """
 import json
 import os
@@ -39,6 +39,7 @@ def main():
             raise SystemExit(f"Falta config_inicial_bdd/{obligatorio}. No se puede armar el instalador sin el catálogo.")
 
     escribir_json(os.path.join(CONFIG_INICIAL, "config.json"), {
+        "_proposito": "Config de fábrica: impresora 80 mm, opciones de ticket y nombre del local.",
         "impresora": {
             "ancho_ticket": 80,
             "modelo": "Térmica 80mm",
@@ -53,10 +54,14 @@ def main():
             "nombre": NOMBRE_SISTEMA_DEFAULT
         }
     })
-    escribir_json(os.path.join(DATA, "ventas.json"), {"pedidos": []})
+    escribir_json(os.path.join(DATA, "ventas.json"), {
+        "_proposito": "Semilla vacía de ventas JSON para el instalador (migración a SQLite).",
+        "pedidos": [],
+    })
 
     with open(os.path.join(DATA, "orden_actual.txt"), "w", encoding="utf-8") as f:
-        f.write("1")
+        f.write("# Propósito: número de orden de instalaciones viejas. El valor real está en saga.db.\n")
+        f.write("1\n")
 
     for nombre_db in ("saga.db", "saga.db-wal", "saga.db-shm"):
         ruta_db = os.path.join(DATA, nombre_db)

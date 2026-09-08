@@ -1,5 +1,6 @@
 """
-Funciones auxiliares para gestionar ingredientes en productos
+Propósito: helpers de la UI de admin para la receta de un producto.
+Carga ingredientes por categoría y agrega o quita ítems de la receta.
 """
 import tkinter as tk
 from tkinter import messagebox

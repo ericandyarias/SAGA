@@ -1,6 +1,6 @@
 """
-Módulo para la ventana de administración de productos
-Permite Alta, Baja y Modificación de productos
+Propósito: ventana de administración.
+ABM de productos, categorías, ingredientes, impresora, resumen de ventas y extras.
 """
 import tkinter as tk
 from tkinter import ttk

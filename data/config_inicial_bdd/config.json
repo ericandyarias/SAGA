@@ -1,4 +1,5 @@
 {
+  "_proposito": "Config de fábrica: impresora 80 mm, opciones de ticket (fecha, corte, QR) y nombre del local. En el .exe se copia a AppData la primera vez.",
   "impresora": {
     "ancho_ticket": 80,
     "modelo": "Térmica 80mm",

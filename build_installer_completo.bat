@@ -1,4 +1,5 @@
 @echo off
+REM Propósito: generar SAGA.exe (PyInstaller) y el instalador (Inno Setup) de un saque.
 chcp 65001 >nul
 setlocal EnableExtensions
 echo ========================================

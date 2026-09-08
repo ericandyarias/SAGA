@@ -1,6 +1,6 @@
 """
-Módulo para el encabezado de la aplicación
-Muestra el título configurable del local (una sola línea)
+Propósito: barra superior de la ventana principal.
+Muestra el nombre del local (una línea), leído de la configuración.
 """
 import tkinter as tk
 from tkinter import ttk

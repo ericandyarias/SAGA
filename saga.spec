@@ -1,3 +1,5 @@
+# Propósito: receta de PyInstaller para armar dist/SAGA.exe (ventana, sin consola).
+# Incluye data/, el icono y las dependencias de impresión/QR.
 # -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None

@@ -1,6 +1,6 @@
 # SAGA - Sistema Administrativo Gastronómico - Arias
 
-Sistema de punto de venta (POS) para gastronomía, desarrollado con Python y Tkinter (ttk).
+Punto de venta para gastronomía (Python + Tkinter).
 
 ## Uso
 
@@ -8,18 +8,28 @@ Sistema de punto de venta (POS) para gastronomía, desarrollado con Python y Tki
 python main.py
 ```
 
-## Estructura
+## Estructura (qué hace cada cosa)
 
 ```
 SAGA/
-├── main.py                 # Aplicación principal
-├── ui/                     # Interfaz
-├── utils/                  # Lógica de negocio
+├── main.py                      # Arranca la caja
+├── requirements.txt             # Librerías de Python
+├── saga.spec                    # Cómo PyInstaller arma el .exe
+├── installer_script.iss         # Cómo Inno Setup arma el instalador
+├── build_installer_completo.bat # Genera .exe + instalador
+├── preparar_datos_instalador.py # Deja data/ virgen para el instalador
+├── ui/                          # Pantallas
+├── utils/                       # Datos, tickets, rutas
 └── data/
-    ├── productos.json      # Productos, precios y relación con ingredientes
-    ├── ingredientes.json   # Ingredientes y precios extra/resta
-    └── imagenes/           # Imágenes de productos e ingredientes
+    ├── saga.db                  # Base de trabajo (productos, ventas, orden)
+    ├── ventas.json              # Solo migración de pedidos viejos
+    ├── orden_actual.txt         # Solo migración del número de orden
+    ├── config_inicial_bdd/      # Catálogo y config de fábrica (JSON)
+    ├── imagenes/                # Fotos de productos e ingredientes
+    └── tickets/                 # Copias de texto de tickets impresos
 ```
+
+Cada archivo de código tiene al inicio un comentario "Propósito".
 
 ## Requisitos
 

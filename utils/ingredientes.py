@@ -1,5 +1,5 @@
 """
-Gestión de ingredientes (SQLite).
+Propósito: ingredientes (nombre, precios extra/resta, imagen) sobre SQLite.
 """
 from utils.base_datos import checkpoint, conexion, inicializar_base_datos
 

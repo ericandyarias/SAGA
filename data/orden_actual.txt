@@ -1,1 +1,2 @@
+# Propósito: número de orden de instalaciones viejas. Hoy el valor real está en saga.db (tabla numerador).
 2

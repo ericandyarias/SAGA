@@ -1,6 +1,7 @@
 """
-SAGA - Sistema Administrativo Gastronómico - Arias
-Aplicación principal que integra todos los componentes de la UI
+Propósito: punto de entrada de SAGA (caja POS).
+Arranca la ventana, arma encabezado/navegador/selección/carrito y
+coordina administración, splash, backup e inicialización de la base.
 """
 import sys
 import os

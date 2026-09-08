@@ -1,0 +1,2 @@
+Propósito: fotos de productos e ingredientes que muestra la caja y la administración.
+Subcarpetas: productos/ e ingredientes/. Los nombres coinciden con el campo "imagen" del catálogo.

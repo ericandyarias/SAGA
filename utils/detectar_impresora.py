@@ -1,6 +1,7 @@
 """
-Script auxiliar para detectar y configurar la impresora por nombre
-Lista todas las impresoras disponibles en Windows y permite seleccionar una
+Propósito: herramienta de consola para listar impresoras de Windows
+y guardar el nombre elegido en config_inicial_bdd/config.json.
+No lo usa la UI; la admin lista impresoras por su cuenta.
 """
 import sys
 import json

@@ -1,6 +1,6 @@
 """
-Módulo para crear backups automáticos de los datos de la aplicación
-Los backups se guardan en una carpeta específica con fecha y hora
+Propósito: copias de seguridad de data/ (base, imágenes, config).
+Guarda carpetas con fecha/hora y limpia backups viejos.
 """
 import os
 import shutil

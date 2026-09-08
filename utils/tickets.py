@@ -1,8 +1,6 @@
 """
-Módulo para generar tickets de pedidos usando python-escpos con Win32Raw
-Genera tickets en formato ESC/POS para impresoras térmicas (80mm)
-Impresión directa sin previsualización, ocupando todo el ancho del papel
-Usa Win32Raw para imprimir por nombre de impresora en Windows
+Propósito: tickets de cocina y cliente (ESC/POS, térmica 80 mm).
+Lee config de impresora/QR, imprime por Win32Raw y deja una copia de texto en data/tickets.
 """
 import os
 import sys

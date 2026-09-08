@@ -1,5 +1,6 @@
-; Script de Inno Setup para SAGA
-; Compilar con Inno Setup Compiler o con build_installer_completo.bat
+; Propósito: instalador de Windows (Inno Setup).
+; Copia SAGA.exe, el icono y el catálogo de fábrica a AppData del usuario.
+; Compilar con Inno Setup o con build_installer_completo.bat.
 
 #define MyAppName "SAGA"
 #define MyAppVersion "1.0"
@@ -35,9 +36,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\SAGA.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Icono Hamburguesa.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\data\productos.json"; DestDir: "{tmp}\SAGAData"; Flags: ignoreversion
-Source: "dist\data\ingredientes.json"; DestDir: "{tmp}\SAGAData"; Flags: ignoreversion
-Source: "dist\data\config.json"; DestDir: "{tmp}\SAGAData"; Flags: ignoreversion
+Source: "dist\data\config_inicial_bdd\*"; DestDir: "{tmp}\SAGAData\config_inicial_bdd"; Flags: ignoreversion
 Source: "dist\data\ventas.json"; DestDir: "{tmp}\SAGAData"; Flags: ignoreversion
 Source: "dist\data\orden_actual.txt"; DestDir: "{tmp}\SAGAData"; Flags: ignoreversion
 Source: "dist\data\imagenes\*"; DestDir: "{tmp}\SAGAData\imagenes"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -100,12 +99,8 @@ begin
 
     if DirExists(TempDataPath) then
     begin
-      if FileExists(TempDataPath + '\productos.json') then
-        CopyFile(TempDataPath + '\productos.json', AppDataPath + '\productos.json', False);
-      if FileExists(TempDataPath + '\ingredientes.json') then
-        CopyFile(TempDataPath + '\ingredientes.json', AppDataPath + '\ingredientes.json', False);
-      if FileExists(TempDataPath + '\config.json') then
-        CopyFile(TempDataPath + '\config.json', AppDataPath + '\config.json', False);
+      if DirExists(TempDataPath + '\config_inicial_bdd') then
+        CopyDirRecursive(TempDataPath + '\config_inicial_bdd', AppDataPath + '\config_inicial_bdd');
       if FileExists(TempDataPath + '\ventas.json') then
         CopyFile(TempDataPath + '\ventas.json', AppDataPath + '\ventas.json', False);
       if FileExists(TempDataPath + '\orden_actual.txt') then
