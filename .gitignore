@@ -1,0 +1,10 @@
+# Propósito: no versionar basura de Python, builds ni copias de tickets.
+
+__pycache__/
+*.py[cod]
+build/
+dist/
+installer/*.exe
+data/saga.db-wal
+data/saga.db-shm
+data/tickets/*.txt

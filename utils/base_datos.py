@@ -1,8 +1,8 @@
 """
-SQLite local de SAGA.
-
-Un archivo saga.db. La UI no habla SQL: productos, ingredientes, ventas y orden
-usan este módulo. usuario y comprobante quedan listos para fiscal/ARCA.
+Propósito: SQLite local de SAGA (data/saga.db).
+Crea tablas, importa el catálogo de fábrica y las ventas viejas en JSON.
+La UI no habla SQL: pasa por productos, ingredientes, ventas y orden.
+usuario y comprobante quedan listos para fiscal/ARCA.
 """
 import json
 import os
@@ -247,8 +247,11 @@ def _leer_orden_txt():
     ruta = os.path.join(obtener_ruta_data(), "orden_actual.txt")
     try:
         with open(ruta, "r", encoding="utf-8") as f:
-            texto = f.read().strip()
-        return int(texto) if texto else 1
+            for linea in f:
+                linea = linea.strip()
+                if linea and not linea.startswith("#"):
+                    return int(linea)
+        return None
     except (FileNotFoundError, ValueError):
         return None
 

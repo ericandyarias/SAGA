@@ -1,8 +1,6 @@
 """
-Scroll con rueda del mouse para canvas de Tkinter.
-
-Evita interferencias entre paneles: solo scrollea el contenedor
-que está bajo el cursor, y solo si el contenido desborda.
+Propósito: rueda del mouse en los canvas de Tkinter.
+Solo scrollea el panel bajo el cursor, y solo si el contenido desborda.
 """
 import tkinter as tk
 

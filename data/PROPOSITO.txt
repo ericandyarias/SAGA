@@ -1,0 +1,5 @@
+Propósito de esta carpeta:
+- saga.db: base de trabajo (productos, ingredientes, ventas, número de orden). No se puede comentar por dentro (es binario).
+- ventas.json y orden_actual.txt: solo migración de datos viejos.
+- config_inicial_bdd/: catálogo y config de fábrica en JSON.
+- imagenes/ y tickets/: fotos y copias de tickets.

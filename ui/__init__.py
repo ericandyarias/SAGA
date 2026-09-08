@@ -1,1 +1,1 @@
-# Módulo UI de SAGA - Sistema Administrativo Gastronómico - Arias
+# Propósito: marca el paquete de pantallas Tkinter (encabezado, caja, admin, splash).

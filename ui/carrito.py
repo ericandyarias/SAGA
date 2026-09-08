@@ -1,6 +1,6 @@
 """
-Módulo para el carrito de compras (barra derecha)
-Muestra items seleccionados, cantidad, total y botón de confirmación
+Propósito: carrito a la derecha de la caja.
+Lista ítems, cantidades, extras, total y confirma el pedido (tickets + venta).
 """
 import tkinter as tk
 from tkinter import ttk

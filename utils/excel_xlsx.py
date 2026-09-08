@@ -1,6 +1,6 @@
 """
-Genera un .xlsx simple con estilos, sin librerías extra.
-Excel lo abre con formato (colores, anchos, números).
+Propósito: armar un .xlsx de ventas sin librerías extra.
+Lo usa el resumen de administración para exportar a Excel.
 """
 import zipfile
 from xml.sax.saxutils import escape

@@ -1,7 +1,6 @@
 """
-Módulo para asegurar que solo se ejecute una instancia de la aplicación
-Usa un mutex de Windows para prevenir múltiples instancias
-Si hay otra instancia, trae su ventana al frente en lugar de abrir una nueva
+Propósito: una sola instancia de SAGA a la vez.
+Mutex de Windows + archivo lock; si ya hay una, trae esa ventana al frente.
 """
 import sys
 import os

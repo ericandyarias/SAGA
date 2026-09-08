@@ -1,4 +1,5 @@
 {
+  "_proposito": "Catálogo de fábrica: ingredientes, categorías, precio extra/resta e imagen. Se importa a saga.db la primera vez.",
   "ingredientes": [
     {
       "id": 1,

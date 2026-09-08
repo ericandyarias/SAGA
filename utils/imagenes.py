@@ -1,6 +1,6 @@
 """
-Módulo para gestión de imágenes de productos e ingredientes
-Maneja carga, guardado, redimensionamiento y eliminación de imágenes
+Propósito: fotos de productos e ingredientes.
+Carga, recorte, guardado en data/imagenes y armado de PhotoImage para Tk.
 """
 import os
 import shutil

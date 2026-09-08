@@ -1,6 +1,6 @@
 """
-Módulo para la selección de productos (centro)
-Incluye buscador, categorías y botones de productos
+Propósito: panel central de la caja.
+Buscador, categorías y botones de productos para armar el pedido.
 """
 import tkinter as tk
 from tkinter import ttk

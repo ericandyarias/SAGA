@@ -1,7 +1,7 @@
 """
-Módulo para obtener rutas correctas de archivos
-Funciona tanto en desarrollo como en ejecutable empaquetado
-Usa AppData del usuario para archivos modificables cuando está instalado
+Propósito: resolver carpetas de datos en desarrollo y en el .exe instalado.
+En desarrollo usa data/ del proyecto; instalado usa AppData\\SAGA.
+También apunta al catálogo de fábrica (config_inicial_bdd) y migra datos viejos.
 """
 import os
 import sys

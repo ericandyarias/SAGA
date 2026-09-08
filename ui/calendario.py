@@ -1,5 +1,6 @@
 """
-Calendario emergente para elegir una fecha (día / mes / año).
+Propósito: calendario emergente para elegir una fecha (día / mes / año).
+Lo usa administración al filtrar ventas por período.
 """
 import calendar
 import tkinter as tk

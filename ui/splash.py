@@ -1,6 +1,6 @@
 """
-Módulo para la pantalla de carga (splash screen)
-Se muestra mientras se inicializa la aplicación
+Propósito: pantalla de carga al abrir SAGA.
+Se muestra mientras se inicializan datos y la ventana principal.
 """
 import tkinter as tk
 from tkinter import ttk

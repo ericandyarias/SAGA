@@ -1,5 +1,6 @@
 """
-Historial de pedidos confirmados (SQLite). Control interno, no fiscal.
+Propósito: historial de pedidos confirmados en SQLite.
+Control interno (resumen, Excel). No es comprobante fiscal.
 """
 from datetime import datetime, timedelta, date
 

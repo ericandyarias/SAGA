@@ -1,6 +1,6 @@
 """
-Gestión de productos y categorías (SQLite).
-La forma de los diccionarios se mantiene para la UI.
+Propósito: catálogo de productos y categorías sobre SQLite.
+La UI sigue recibiendo diccionarios; acá se lee y escribe saga.db.
 """
 from utils.base_datos import (
     CATEGORIA_PERSONALIZADOS,

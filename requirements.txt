@@ -1,3 +1,4 @@
+# Propósito: librerías de Python que SAGA necesita para correr (impresión, imágenes, Windows, QR).
 # Dependencias del proyecto
 python-escpos>=3.1
 Pillow>=10.0.0

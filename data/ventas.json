@@ -1,4 +1,5 @@
 {
+  "_proposito": "Copia JSON de pedidos viejos. Solo se usa para importar a saga.db si la base está vacía. El historial real vive en SQLite.",
   "pedidos": [
     {
       "id": "a3bc6dcc-c612-4e67-bf94-9bb0c0237db0",

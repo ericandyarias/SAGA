@@ -1,7 +1,6 @@
 """
-Script de prueba para verificar la conexión con la impresora
-Ejecuta este script para diagnosticar problemas de impresión
-Usa Win32Raw para imprimir por nombre de impresora en Windows
+Propósito: herramienta de consola para mandar un ticket de prueba.
+Diagnóstico de impresión; la UI usa imprimir_ticket_prueba en tickets.py.
 """
 import sys
 import json
